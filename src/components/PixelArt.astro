@@ -1,0 +1,160 @@
+---
+/**
+ * トップページの「ペイント」ウィンドウに置くドット絵。
+ *
+ * 280x220 の viewBox に 4px グリッドで描いている。SVG なので拡大しても
+ * にじまない（shape-rendering="crispEdges"）。
+ * 画像を差し替えたくなったら、このファイルを <img> に置き換えるだけでよい。
+ */
+interface Props {
+	title?: string;
+}
+
+const { title = "夕暮れの海沿いを走る車のドット絵" } = Astro.props;
+
+/** 太陽をドット円で描くための行データ [y, x, width] */
+const sunRows: [number, number, number][] = [
+	[72, 188, 16],
+	[76, 184, 24],
+	[80, 180, 32],
+	[84, 176, 40],
+	[88, 176, 40],
+	[92, 176, 40],
+	[96, 176, 40],
+	[100, 180, 32],
+	[104, 184, 24],
+	[108, 188, 16],
+];
+
+/** 海のさざ波 [x, y, width] */
+const waves: [number, number, number][] = [
+	[16, 126, 20],
+	[52, 134, 16],
+	[8, 144, 28],
+	[44, 152, 20],
+	[92, 130, 16],
+	[112, 148, 24],
+	[228, 124, 16],
+	[244, 140, 20],
+	[212, 156, 24],
+];
+
+/** 太陽の海面反射 [x, y, width] */
+const glints: [number, number, number][] = [
+	[184, 122, 24],
+	[188, 130, 16],
+	[180, 138, 32],
+	[190, 146, 12],
+	[184, 154, 24],
+];
+
+/** 道路のセンターライン x 座標 */
+const laneMarks = [4, 60, 116, 172, 228];
+---
+
+<svg
+	viewBox="0 0 280 220"
+	shape-rendering="crispEdges"
+	role="img"
+	aria-label={title}
+	preserveAspectRatio="xMidYMid meet"
+>
+	<title>{title}</title>
+
+	{/* ---- 空 ---- */}
+	<rect x="0" y="0" width="280" height="24" fill="#241a3c"></rect>
+	<rect x="0" y="24" width="280" height="16" fill="#3a2350"></rect>
+	<rect x="0" y="40" width="280" height="16" fill="#5c2f5e"></rect>
+	<rect x="0" y="56" width="280" height="16" fill="#8a3a62"></rect>
+	<rect x="0" y="72" width="280" height="16" fill="#c25a5e"></rect>
+	<rect x="0" y="88" width="280" height="12" fill="#e07f4e"></rect>
+	<rect x="0" y="100" width="280" height="12" fill="#f0a95e"></rect>
+	<rect x="0" y="112" width="280" height="6" fill="#f6c877"></rect>
+
+	{/* ---- 太陽 ---- */}
+	{
+		sunRows.map(([y, x, w]) => (
+			<rect x={x} y={y} width={w} height="4" fill="#ffe89a" />
+		))
+	}
+
+	{/* ---- 鳥 ---- */}
+	<g fill="#1a1230">
+		<rect x="148" y="34" width="4" height="2"></rect>
+		<rect x="152" y="32" width="4" height="2"></rect>
+		<rect x="156" y="34" width="4" height="2"></rect>
+		<rect x="172" y="44" width="4" height="2"></rect>
+		<rect x="176" y="42" width="4" height="2"></rect>
+		<rect x="180" y="44" width="4" height="2"></rect>
+	</g>
+
+	{/* ---- 船 ---- */}
+	<g fill="#140f24">
+		<rect x="44" y="108" width="80" height="10"></rect>
+		<rect x="60" y="98" width="24" height="10"></rect>
+		<rect x="96" y="100" width="16" height="8"></rect>
+		<rect x="84" y="90" width="8" height="18"></rect>
+	</g>
+
+	{/* ---- 海 ---- */}
+	<rect x="0" y="118" width="280" height="46" fill="#1b2a5c"></rect>
+	{
+		glints.map(([x, y, w]) => (
+			<rect x={x} y={y} width={w} height="4" fill="#e8964c" />
+		))
+	}
+	{
+		waves.map(([x, y, w]) => (
+			<rect x={x} y={y} width={w} height="2" fill="#3a5a9c" />
+		))
+	}
+
+	{/* ---- 電柱 ---- */}
+	<g fill="#140f24">
+		<rect x="248" y="60" width="6" height="120"></rect>
+		<rect x="236" y="70" width="30" height="4"></rect>
+		<rect x="238" y="82" width="26" height="4"></rect>
+		<rect x="112" y="84" width="4" height="80"></rect>
+		<rect x="104" y="90" width="20" height="3"></rect>
+	</g>
+
+	{/* ---- 護岸と道路 ---- */}
+	<rect x="0" y="164" width="280" height="12" fill="#6b7076"></rect>
+	<rect x="0" y="176" width="280" height="44" fill="#4a4f55"></rect>
+	<rect x="0" y="176" width="280" height="2" fill="#8d9298"></rect>
+
+	{/* ガードレールの支柱 */}
+	<g fill="#2a2e33">
+		<rect x="20" y="160" width="4" height="10"></rect>
+		<rect x="76" y="160" width="4" height="10"></rect>
+		<rect x="132" y="160" width="4" height="10"></rect>
+		<rect x="188" y="160" width="4" height="10"></rect>
+	</g>
+
+	{/* ---- 車 ---- */}
+	<g>
+		{/* キャビン */}
+		<rect x="120" y="176" width="56" height="14" fill="#c8322a"></rect>
+		<rect x="126" y="179" width="20" height="9" fill="#9fd4e8"></rect>
+		<rect x="150" y="179" width="20" height="9" fill="#9fd4e8"></rect>
+		{/* ボディ */}
+		<rect x="96" y="188" width="108" height="16" fill="#c8322a"></rect>
+		<rect x="96" y="188" width="108" height="3" fill="#e2564a"></rect>
+		<rect x="96" y="202" width="108" height="4" fill="#8f1f1a"></rect>
+		{/* ライト */}
+		<rect x="198" y="192" width="6" height="5" fill="#ffe89a"></rect>
+		<rect x="96" y="192" width="6" height="5" fill="#ffb03a"></rect>
+		{/* タイヤ */}
+		<rect x="108" y="198" width="22" height="16" fill="#141414"></rect>
+		<rect x="112" y="202" width="14" height="8" fill="#b4b4b4"></rect>
+		<rect x="166" y="198" width="22" height="16" fill="#141414"></rect>
+		<rect x="170" y="202" width="14" height="8" fill="#b4b4b4"></rect>
+	</g>
+
+	{/* ---- センターライン ---- */}
+	{
+		laneMarks.map((x) => (
+			<rect x={x} y="214" width="32" height="4" fill="#d8d8d0" />
+		))
+	}
+</svg>

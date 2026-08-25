@@ -1,48 +1,227 @@
 ---
-import { getEmDashCollection, getSiteSettings } from "emdash";
-import { Image } from "emdash/ui";
+import {
+	getEmDashCollection,
+	getEmDashEntry,
+	getSiteSettings,
+	getTermsForEntries,
+} from "emdash";
+import { PortableText } from "emdash/ui";
 import Base from "../layouts/Base.astro";
+import Window from "../components/Window.astro";
+import Icon from "../components/Icon.astro";
+import PixelArt from "../components/PixelArt.astro";
 import { resolveStarterSiteIdentity } from "../utils/site-identity";
 
 const { entries: posts, cacheHint } = await getEmDashCollection("posts", {
 	orderBy: { published_at: "desc" },
 });
-const { siteTitle, siteTagline } = resolveStarterSiteIdentity(await getSiteSettings());
 if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
+
+const { siteTitle, siteTagline } = resolveStarterSiteIdentity(
+	await getSiteSettings(),
+);
+
+/** 「このサイトについて」ウィンドウ。about ページが無ければ差し込み文を出す */
+const { entry: about } = await getEmDashEntry("pages", "about");
+
+const recent = posts.slice(0, 8);
+const tagsByEntry = await getTermsForEntries(
+	"posts",
+	recent.map((p) => p.data.id),
+	"tag",
+);
+
+const dateFormat = new Intl.DateTimeFormat("ja-JP", {
+	year: "numeric",
+	month: "2-digit",
+	day: "2-digit",
+});
 ---
 
-<Base title={siteTitle} description={siteTagline}>
-	<h1>Recent Posts</h1>
+<Base title={siteTitle} description={siteTagline} chrome="desktop">
+	<div class="desktop-grid">
+		{/* ========================================================= 左カラム */}
+		<div class="desktop-col">
+			{/* ---------------------------------------------- 看板ウィンドウ */}
+			<Window
+				id="main"
+				class="area-main"
+				icon="document"
+				title={`${siteTitle} - ${siteTagline}`}
+				closable={false}
+			>
+				<div class="win-menubar" slot="menubar">
+					<span>ファイル(<span class="key">F</span>)</span>
+					<span>編集(<span class="key">E</span>)</span>
+					<span>表示(<span class="key">V</span>)</span>
+					<a href="/posts">記事(<span class="key">P</span>)</a>
+					<a href="/pages">ページ(<span class="key">G</span>)</a>
+				</div>
 
-	{
-		posts.length === 0 ? (
-			<p>
-				No posts yet.{" "}
-				<a href="/_emdash/admin/content/posts/new">Create one</a>.
-			</p>
-		) : (
-			<ul>
-				{posts.map((post) => (
-					<li>
-						<a href={`/posts/${post.id}`}>
-							{post.data.featured_image && (
-								<Image image={post.data.featured_image} />
-							)}
-							<h2>{post.data.title}</h2>
-						</a>
-						{post.data.excerpt && <p>{post.data.excerpt}</p>}
-						{post.data.publishedAt && (
-							<time datetime={post.data.publishedAt.toISOString()}>
-								{post.data.publishedAt.toLocaleDateString("en-US", {
-									year: "numeric",
-									month: "long",
-									day: "numeric",
+				<div class="win-toolbar" slot="toolbar">
+					<a class="btn btn-icon" href="/posts" title="記事一覧" aria-label="記事一覧">
+						<Icon name="folder" />
+					</a>
+					<a class="btn btn-icon" href="/pages" title="ページ一覧" aria-label="ページ一覧">
+						<Icon name="document" />
+					</a>
+					<div class="win-toolbar-sep" aria-hidden="true"></div>
+					<a
+						class="btn btn-icon"
+						href="/about"
+						title="このサイトについて"
+						aria-label="このサイトについて"
+					>
+						<Icon name="ie" />
+					</a>
+				</div>
+
+				<div class="signboard">
+					<h1 class="signboard-title">{siteTitle}</h1>
+					<p class="signboard-tagline">{siteTagline}</p>
+				</div>
+
+				<Fragment slot="status">
+					<span>ヘルプを表示するには [ヘルプ] メニューから [トピックの検索] をクリック</span>
+					<span>1/1</span>
+				</Fragment>
+			</Window>
+
+			{/* ---------------------------------------- このサイトについて */}
+			<Window
+				id="about"
+				class="area-about"
+				icon="ie"
+				title={`${about?.data.title ?? "このサイトについて"} - Web Browser`}
+			>
+				<div class="win-toolbar" slot="toolbar">
+					<span class="btn btn-icon" aria-hidden="true"><Icon name="back" /></span>
+					<span class="btn btn-icon" aria-hidden="true"><Icon name="forward" /></span>
+					<span class="btn btn-icon" aria-hidden="true"><Icon name="stop" /></span>
+					<a class="btn btn-icon" href="/" title="ホーム" aria-label="ホーム">
+						<Icon name="home" />
+					</a>
+					<div class="win-address">
+						<span class="win-address-label">アドレス</span>
+						<div class="win-address-field">
+							<Icon name="ie" />
+							<span>{`${Astro.url.origin}/about`}</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="prose">
+					{
+						about ? (
+							<PortableText value={about.data.content} />
+						) : (
+							<p>
+								about ページがまだありません。
+								<a href="/_emdash/admin/content/pages/new">管理画面から作成</a>
+								すると、ここに本文が表示されます。
+							</p>
+						)
+					}
+				</div>
+
+				<div class="row" style="margin-top:14px">
+					{about && <a class="btn" href="/about">続きを読む</a>}
+					<a class="btn" href="/pages">ページ一覧</a>
+				</div>
+
+				<Fragment slot="status">
+					<span>ページが表示されました</span>
+					<span>インターネット</span>
+				</Fragment>
+			</Window>
+		</div>
+
+		{/* ========================================================= 右カラム */}
+		<div class="desktop-col">
+			{/* -------------------------------------------------- ドット絵 */}
+			<Window
+				id="paint"
+				class="area-paint"
+				icon="paint"
+				title="drive_my_car.bmp - ペイント"
+				bodyClass="win-body-face"
+			>
+				<div class="win-menubar" slot="menubar">
+					<span>ファイル(<span class="key">F</span>)</span>
+					<span>編集(<span class="key">E</span>)</span>
+					<span>表示(<span class="key">V</span>)</span>
+					<span>変形(<span class="key">I</span>)</span>
+					<span>色(<span class="key">C</span>)</span>
+				</div>
+
+				<div class="paint">
+					<div class="paint-tools" aria-hidden="true">
+						{Array.from({ length: 16 }).map(() => <span class="paint-tool" />)}
+					</div>
+					<div class="paint-canvas">
+						<PixelArt />
+					</div>
+				</div>
+
+				<Fragment slot="status">
+					<span>ヘルプを表示するには F1 キーを押してください</span>
+					<span>280 × 220</span>
+				</Fragment>
+			</Window>
+
+			{/* -------------------------------------------------- 最新記事 */}
+			<Window
+				id="posts"
+				class="area-posts"
+				icon="folder-open"
+				title="最新記事"
+				bodyClass="win-body-flush"
+			>
+				<div class="win-menubar" slot="menubar">
+					<span>ファイル(<span class="key">F</span>)</span>
+					<span>編集(<span class="key">E</span>)</span>
+					<span>表示(<span class="key">V</span>)</span>
+					<a href="/posts">すべて表示(<span class="key">A</span>)</a>
+				</div>
+
+				<div class="win-scroll">
+					{
+						recent.length === 0 ? (
+							<p class="listview-empty">
+								まだ記事がありません。
+								<a href="/_emdash/admin/content/posts/new">1 本目を書く</a>
+							</p>
+						) : (
+							<div class="listview">
+								{recent.map((post) => {
+									const tags = tagsByEntry.get(post.data.id) ?? [];
+									return (
+										<a class="listview-row" href={`/posts/${post.id}`}>
+											<Icon name="document" class="listview-icon" />
+											<span class="listview-name">{post.data.title}</span>
+											<span class="listview-meta">
+												{post.data.publishedAt
+													? dateFormat.format(post.data.publishedAt)
+													: "下書き"}
+											</span>
+											<span class="listview-meta listview-meta-extra">
+												{tags.length > 0
+													? tags.map((t) => t.label).join(", ")
+													: "—"}
+											</span>
+										</a>
+									);
 								})}
-							</time>
-						)}
-					</li>
-				))}
-			</ul>
-		)
-	}
+							</div>
+						)
+					}
+				</div>
+
+				<Fragment slot="status">
+					<span>{posts.length} 個のオブジェクト</span>
+					<span>{recent.length} 件表示</span>
+				</Fragment>
+			</Window>
+		</div>
+	</div>
 </Base>

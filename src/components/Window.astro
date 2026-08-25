@@ -1,0 +1,88 @@
+---
+import Icon from "./Icon.astro";
+
+/**
+ * Win95 風のウィンドウ枠。
+ *
+ * スロット:
+ *   menubar  タイトルバーの下のメニュー行（ナビとして使う）
+ *   toolbar  アイコンボタン / アドレスバーの行
+ *   default  クライアント領域の中身
+ *   status   ステータスバーのセル（<span> を並べる。1 つ目が左寄せで伸びる）
+ */
+interface Props {
+	/** タスクバーのボタンと結びつく ID */
+	id: string;
+	title: string;
+	icon?: "document" | "paint" | "ie" | "folder" | "folder-open" | "computer";
+	/** × ボタンを出すか（false なら無効表示） */
+	closable?: boolean;
+	/** クライアント領域に足すクラス。win-body-face でグレー地にできる */
+	bodyClass?: string;
+	class?: string;
+}
+
+const {
+	id,
+	title,
+	icon = "document",
+	closable = true,
+	bodyClass,
+	class: className,
+} = Astro.props;
+---
+
+<section
+	class:list={["win", className]}
+	data-window={id}
+	data-window-title={title}
+	aria-label={title}
+>
+	<div class="win-titlebar">
+		<Icon name={icon} class="win-titlebar-icon" />
+		<span class="win-titlebar-text">{title}</span>
+		<div class="win-controls">
+			<button
+				type="button"
+				class="win-ctl win-ctl-min"
+				data-window-action="minimize"
+				title="最小化"
+			>
+				<span class="visually-hidden">最小化</span>
+			</button>
+			<button
+				type="button"
+				class="win-ctl win-ctl-max"
+				disabled
+				title="最大化（このサイトでは使えません）"
+			>
+				<span class="visually-hidden">最大化</span>
+			</button>
+			<button
+				type="button"
+				class="win-ctl"
+				data-window-action="close"
+				disabled={!closable}
+				title="閉じる"
+			>
+				<span aria-hidden="true">✕</span>
+				<span class="visually-hidden">閉じる</span>
+			</button>
+		</div>
+	</div>
+
+	<slot name="menubar" />
+	<slot name="toolbar" />
+
+	<div class:list={["win-body", bodyClass]}>
+		<slot />
+	</div>
+
+	{
+		Astro.slots.has("status") && (
+			<div class="win-status">
+				<slot name="status" />
+			</div>
+		)
+	}
+</section>

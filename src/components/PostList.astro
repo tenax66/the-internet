@@ -1,0 +1,74 @@
+---
+import { Image } from "emdash/ui";
+import Icon from "./Icon.astro";
+
+interface Term {
+	slug: string;
+	label: string;
+}
+
+interface Props {
+	/** 記事とタグの組。タグが無いページからは tags: [] を渡す */
+	items: { post: any; tags?: Term[] }[];
+	emptyMessage?: string;
+}
+
+const { items, emptyMessage = "記事がありません。" } = Astro.props;
+
+const dateFormat = new Intl.DateTimeFormat("ja-JP", {
+	year: "numeric",
+	month: "long",
+	day: "numeric",
+});
+---
+
+{
+	items.length === 0 ? (
+		<p class="listview-empty">{emptyMessage}</p>
+	) : (
+		<ul class="post-grid">
+			{items.map(({ post, tags = [] }) => (
+				<li class="post-card">
+					<a class="post-card-media" href={`/posts/${post.id}`} tabindex="-1" aria-hidden="true">
+						{post.data.featured_image ? (
+							<Image image={post.data.featured_image} width={480} />
+						) : (
+							<span class="post-card-placeholder">
+								<Icon name="document" size={32} />
+							</span>
+						)}
+					</a>
+
+					<div class="post-card-body">
+						<h2 class="post-card-title">
+							<a href={`/posts/${post.id}`}>{post.data.title}</a>
+						</h2>
+
+						{post.data.excerpt && <p class="post-card-excerpt">{post.data.excerpt}</p>}
+
+						<p class="post-card-meta">
+							{post.data.publishedAt ? (
+								<time datetime={post.data.publishedAt.toISOString()}>
+									{dateFormat.format(post.data.publishedAt)}
+								</time>
+							) : (
+								<span>下書き</span>
+							)}
+						</p>
+
+						{tags.length > 0 && (
+							<p class="taglist">
+								{tags.map((t) => (
+									<a class="tagchip" href={`/tag/${t.slug}`}>
+										<Icon name="tag" size={12} />
+										{t.label}
+									</a>
+								))}
+							</p>
+						)}
+					</div>
+				</li>
+			))}
+		</ul>
+	)
+}

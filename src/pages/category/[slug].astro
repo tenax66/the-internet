@@ -1,7 +1,7 @@
 ---
-import { getTerm, getEmDashCollection, decodeSlug } from "emdash";
-import { Image } from "emdash/ui";
+import { getTerm, getEmDashCollection, decodeSlug, getTermsForEntries } from "emdash";
 import Base from "../../layouts/Base.astro";
+import PostList from "../../components/PostList.astro";
 
 const slug = decodeSlug(Astro.params.slug);
 const term = slug ? await getTerm("category", slug) : null;
@@ -14,29 +14,29 @@ const { entries: posts } = await getEmDashCollection("posts", {
 	where: { category: term.slug },
 	orderBy: { published_at: "desc" },
 });
+
+const tagsByEntry = await getTermsForEntries(
+	"posts",
+	posts.map((p) => p.data.id),
+	"tag",
+);
+const items = posts.map((post) => ({
+	post,
+	tags: tagsByEntry.get(post.data.id) ?? [],
+}));
 ---
 
-<Base title={`${term.label} posts`} description={`Posts in ${term.label}`}>
-	<h1>{term.label}</h1>
-	<p>{posts.length} {posts.length === 1 ? "post" : "posts"}</p>
+<Base
+	title={`カテゴリ: ${term.label}`}
+	description={`${term.label} の記事一覧`}
+	windowTitle={`${term.label} - エクスプローラ`}
+	windowIcon="folder-open"
+	status={`${posts.length} 個のオブジェクト`}
+>
+	<h1 class="archive-title">
+		<span class="archive-kind">カテゴリ</span>
+		{term.label}
+	</h1>
 
-	{
-		posts.length === 0 ? (
-			<p>No posts in this category yet.</p>
-		) : (
-			<ul>
-				{posts.map((post) => (
-					<li>
-						<a href={`/posts/${post.id}`}>
-							{post.data.featured_image && (
-								<Image image={post.data.featured_image} />
-							)}
-							<h2>{post.data.title}</h2>
-						</a>
-						{post.data.excerpt && <p>{post.data.excerpt}</p>}
-					</li>
-				))}
-			</ul>
-		)
-	}
+	<PostList items={items} emptyMessage="このカテゴリの記事はまだありません。" />
 </Base>

@@ -1,14 +1,12 @@
 ---
 import { getMenu, getSiteSettings } from "emdash";
-import {
-	WidgetArea,
-	EmDashHead,
-	EmDashBodyStart,
-	EmDashBodyEnd,
-} from "emdash/ui";
+import { EmDashHead, EmDashBodyStart, EmDashBodyEnd } from "emdash/ui";
 import { createPublicPageContext } from "emdash/page";
-import LiveSearch from "emdash/ui/search";
+import Taskbar from "../components/Taskbar.astro";
+import Window from "../components/Window.astro";
+import Icon from "../components/Icon.astro";
 import { resolveStarterSiteIdentity } from "../utils/site-identity";
+import "../styles/win98.css";
 
 interface Props {
 	title: string;
@@ -18,14 +16,56 @@ interface Props {
 	canonical?: string | null;
 	/** Pass content reference for plugin page contributions on content pages */
 	content?: { collection: string; id: string; slug?: string | null };
+	/**
+	 * desktop = 中身を自分でウィンドウに分けて並べる（トップページ）
+	 * window  = 中身を 1 枚のウィンドウで包む（記事・一覧など）
+	 */
+	chrome?: "desktop" | "window";
+	/** chrome="window" のときタイトルバーに出す文字。既定は `title - Web Browser` */
+	windowTitle?: string;
+	windowIcon?: "document" | "paint" | "ie" | "folder" | "folder-open" | "computer";
+	/** ステータスバー左のテキスト */
+	status?: string;
 }
 
-const { title, pageTitle, description, image, canonical, content } = Astro.props;
-const { siteTitle, siteTagline, siteLogo } = resolveStarterSiteIdentity(await getSiteSettings());
+const {
+	title,
+	pageTitle,
+	description,
+	image,
+	canonical,
+	content,
+	chrome = "window",
+	windowTitle,
+	windowIcon = "ie",
+	status = "ページが表示されました",
+} = Astro.props;
+
+const { siteTitle, siteTagline, siteLogo } = resolveStarterSiteIdentity(
+	await getSiteSettings(),
+);
 const fullTitle = title.includes(siteTitle) ? title : `${title} — ${siteTitle}`;
 const pageDescription = description ?? siteTagline;
 
 const menu = await getMenu("primary");
+const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/";
+
+/** メニューバーに出すナビ。emdash の primary メニュー + 固定ルート */
+const menuItems = (menu?.items ?? []).map((item) => ({
+	label: item.label,
+	url: item.url,
+	target: item.target ?? null,
+}));
+const menuUrls = new Set(
+	menuItems.map((i) => i.url.replace(/\/$/, "") || "/"),
+);
+const navItems = [
+	...menuItems,
+	...[
+		{ label: "記事一覧", url: "/posts", target: null },
+		{ label: "ページ一覧", url: "/pages", target: null },
+	].filter((i) => !menuUrls.has(i.url)),
+];
 
 const pageCtx = createPublicPageContext({
 	Astro,
@@ -39,13 +79,17 @@ const pageCtx = createPublicPageContext({
 	content,
 	siteName: siteTitle,
 });
+
+const barTitle = windowTitle ?? `${title} - Web Browser`;
+const addressUrl = `${Astro.url.origin}${Astro.url.pathname}`;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="ja">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="theme-color" content="#008080" />
 		<title>{fullTitle}</title>
 		{pageDescription && <meta name="description" content={pageDescription} />}
 		{canonical && <link rel="canonical" href={canonical} />}
@@ -54,32 +98,84 @@ const pageCtx = createPublicPageContext({
 	<body>
 		<EmDashBodyStart page={pageCtx} />
 
-		<header>
-			<nav>
-				<a href="/">
-					{siteLogo
-						? <img src={siteLogo.url} alt={siteLogo.alt || siteTitle} style="height:48px;width:auto;margin:-8px 0;display:block;" />
-						: siteTitle
-					}
-				</a>
-				{
-					menu?.items.map((item) => (
-						<a href={item.url} target={item.target}>
-							{item.label}
-						</a>
-					))
-				}
-				<LiveSearch placeholder="Search..." collections={["posts", "pages"]} />
-			</nav>
-		</header>
+		<div class="desktop">
+			{
+				chrome === "desktop" ? (
+					<slot />
+				) : (
+					<div class="desktop-single">
+						<Window id="page" title={barTitle} icon={windowIcon}>
+							<div class="win-menubar" slot="menubar">
+								<a href="/">
+									{siteLogo ? (
+										<img
+											src={siteLogo.url}
+											alt={siteLogo.alt || siteTitle}
+											style="height:14px;width:auto;display:block"
+										/>
+									) : (
+										siteTitle
+									)}
+								</a>
+								{navItems.map((item) => (
+									<a
+										href={item.url}
+										target={item.target ?? undefined}
+										aria-current={
+											(item.url.replace(/\/$/, "") || "/") === currentPath
+												? "page"
+												: undefined
+										}
+									>
+										{item.label}
+									</a>
+								))}
+							</div>
 
-		<main>
-			<slot />
-		</main>
+							<div class="win-toolbar" slot="toolbar">
+								<a
+									class="btn btn-icon"
+									href="/"
+									title="ホームへ"
+									aria-label="ホームへ"
+								>
+									<Icon name="home" />
+								</a>
+								<a
+									class="btn btn-icon"
+									href="/posts"
+									title="記事一覧へ"
+									aria-label="記事一覧へ"
+								>
+									<Icon name="folder" />
+								</a>
+								<div class="win-toolbar-sep" aria-hidden="true" />
+								<div class="win-address">
+									<span class="win-address-label">アドレス</span>
+									<div class="win-address-field">
+										<Icon name="ie" />
+										<span>{addressUrl}</span>
+									</div>
+								</div>
+							</div>
 
-		<footer>
-			<WidgetArea name="sidebar" />
-		</footer>
+							<slot />
+
+							<Fragment slot="status">
+								<span>{status}</span>
+								<span>インターネット</span>
+							</Fragment>
+						</Window>
+					</div>
+				)
+			}
+		</div>
+
+		<Taskbar items={menuItems} currentPath={currentPath} />
+
+		<script>
+			import "../scripts/desktop.ts";
+		</script>
 
 		<EmDashBodyEnd page={pageCtx} />
 	</body>

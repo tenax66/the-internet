@@ -1,0 +1,38 @@
+---
+import { getEmDashCollection } from "emdash";
+import Base from "../../layouts/Base.astro";
+import Icon from "../../components/Icon.astro";
+
+// 固定ページの一覧。/:slug で個別ページに飛ぶ
+const { entries: pages, cacheHint } = await getEmDashCollection("pages", {});
+if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
+
+const sorted = [...pages].sort((a, b) =>
+	String(a.data.title).localeCompare(String(b.data.title), "ja"),
+);
+---
+
+<Base
+	title="ページ一覧"
+	description="このサイトの固定ページ一覧"
+	windowTitle="ページ一覧 - エクスプローラ"
+	windowIcon="folder-open"
+	status={`${pages.length} 個のオブジェクト`}
+>
+	{
+		sorted.length === 0 ? (
+			<p class="listview-empty">まだページがありません。</p>
+		) : (
+			<div class="listview">
+				{sorted.map((page) => (
+					<a class="listview-row" href={`/${page.id}`}>
+						<Icon name="document" class="listview-icon" />
+						<span class="listview-name">{page.data.title}</span>
+						<span class="listview-meta">ページ</span>
+						<span class="listview-meta listview-meta-extra">/{page.id}</span>
+					</a>
+				))}
+			</div>
+		)
+	}
+</Base>

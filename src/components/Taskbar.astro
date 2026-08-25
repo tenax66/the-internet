@@ -1,0 +1,111 @@
+---
+import LiveSearch from "emdash/ui/search";
+import Icon from "./Icon.astro";
+
+interface MenuItem {
+	label: string;
+	url: string;
+	target?: string | null;
+}
+
+interface Props {
+	/** emdash の primary メニュー */
+	items?: MenuItem[];
+	/** 現在のパス。メニューの現在地表示に使う */
+	currentPath?: string;
+}
+
+const { items = [], currentPath = "/" } = Astro.props;
+
+/** スタートメニューに必ず出す項目。primary メニューと重複したら省く */
+const builtins: { label: string; url: string; icon: "folder" | "document" }[] = [
+	{ label: "記事一覧", url: "/posts", icon: "folder" },
+	{ label: "ページ一覧", url: "/pages", icon: "document" },
+];
+
+const menuUrls = new Set(items.map((i) => i.url.replace(/\/$/, "") || "/"));
+const extras = builtins.filter(
+	(b) => !menuUrls.has(b.url.replace(/\/$/, "") || "/"),
+);
+---
+
+<nav class="startmenu" id="startmenu" hidden aria-label="スタートメニュー">
+	<div class="startmenu-rail" aria-hidden="true">
+		<span>MENU</span>
+	</div>
+
+	<ul class="startmenu-list">
+		{
+			items.map((item) => (
+				<li>
+					<a
+						href={item.url}
+						target={item.target ?? undefined}
+						aria-current={
+							(item.url.replace(/\/$/, "") || "/") === currentPath
+								? "page"
+								: undefined
+						}
+					>
+						<Icon name={item.url === "/" ? "home" : "document"} size={20} />
+						{item.label}
+					</a>
+				</li>
+			))
+		}
+		{
+			extras.map((item) => (
+				<li>
+					<a
+						href={item.url}
+						aria-current={item.url === currentPath ? "page" : undefined}
+					>
+						<Icon name={item.icon} size={20} />
+						{item.label}
+					</a>
+				</li>
+			))
+		}
+
+		<li class="startmenu-divider" role="separator"></li>
+
+		<li>
+			<a href="#" data-window-action="restore-all">
+				<Icon name="computer" size={20} />
+				すべてのウィンドウを開く
+			</a>
+		</li>
+
+		<li class="startmenu-divider" role="separator"></li>
+
+		<li class="startmenu-search">
+			<LiveSearch placeholder="検索..." collections={["posts", "pages"]} />
+		</li>
+	</ul>
+</nav>
+
+<div class="taskbar">
+	<button
+		type="button"
+		class="taskbar-start"
+		id="start-button"
+		aria-expanded="false"
+		aria-controls="startmenu"
+	>
+		<svg width="16" height="16" viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true">
+			<rect x="1" y="2" width="9" height="8" fill="#c0c0c0" stroke="#000"></rect>
+			<rect x="2" y="3" width="7" height="2" fill="#808080"></rect>
+			<rect x="6" y="6" width="9" height="8" fill="#dfdfdf" stroke="#000"></rect>
+			<rect x="7" y="7" width="7" height="2" fill="#000080"></rect>
+		</svg>
+		<span>スタート</span>
+	</button>
+
+	<div class="taskbar-sep" aria-hidden="true"></div>
+
+	<div class="taskbar-items" id="taskbar-items" aria-label="ウィンドウ一覧" role="group"></div>
+
+	<div class="taskbar-tray">
+		<span id="taskbar-clock" aria-label="現在時刻">--:--</span>
+	</div>
+</div>

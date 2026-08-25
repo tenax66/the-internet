@@ -1,0 +1,1418 @@
+/*
+ * win98.css — Windows 95/98 クラシック風のデザインシステム
+ *
+ * 使い方のメモ:
+ *   .win            ウィンドウ枠（外側の立体ベベル）
+ *   .win-titlebar   青グラデのタイトルバー
+ *   .win-menubar    ファイル(F) 編集(E) … のメニュー行。実際のナビにも使う
+ *   .win-toolbar    アイコンボタン / アドレスバーの行
+ *   .win-body       クライアント領域
+ *   .win-status     ステータスバー
+ *   .sunken / .raised  へこみ / 出っぱりのベベル（単体で使える）
+ */
+
+:root {
+	color-scheme: light;
+
+	/* --- カラー（Win95 のシステムカラー相当） --- */
+	--w-desktop: #008080;
+	--w-face: #c0c0c0;
+	--w-face-light: #dfdfdf;
+	--w-white: #ffffff;
+	--w-shadow: #808080;
+	--w-dark: #000000;
+	--w-text: #000000;
+	--w-text-disabled: #808080;
+
+	--w-title-active-1: #000080;
+	--w-title-active-2: #1084d0;
+	--w-title-inactive-1: #808080;
+	--w-title-inactive-2: #b5b5b5;
+	--w-title-text: #ffffff;
+
+	--w-select: #000080;
+	--w-select-text: #ffffff;
+
+	--w-link: #0000ee;
+	--w-link-visited: #551a8b;
+
+	/* --- 寸法 --- */
+	--w-taskbar-h: 30px;
+	--w-titlebar-h: 20px;
+
+	/* --- フォント --- */
+	--w-font-ui:
+		"MS PGothic", "MS UI Gothic", "Hiragino Kaku Gothic ProN", "Yu Gothic UI",
+		"Yu Gothic", Meiryo, system-ui, sans-serif;
+	--w-font-mono: "MS Gothic", "Osaka-Mono", "SFMono-Regular", ui-monospace, monospace;
+}
+
+/* ---------------------------------------------------------------- reset */
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+html {
+	/* デスクトップの余白がどこまでスクロールしても teal のまま見えるように */
+	background: var(--w-desktop);
+}
+
+body {
+	margin: 0;
+	font-family: var(--w-font-ui);
+	font-size: 13px;
+	line-height: 1.5;
+	color: var(--w-text);
+	background: var(--w-desktop);
+	/* タスクバーに隠れないぶんの下余白 */
+	padding-bottom: var(--w-taskbar-h);
+	-webkit-text-size-adjust: 100%;
+}
+
+img {
+	max-width: 100%;
+	height: auto;
+}
+
+/* ------------------------------------------------------------- ベベル */
+
+.raised {
+	background: var(--w-face);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-dark),
+		inset 1px 1px 0 0 var(--w-white),
+		inset -2px -2px 0 0 var(--w-shadow),
+		inset 2px 2px 0 0 var(--w-face-light);
+}
+
+.sunken {
+	background: var(--w-white);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-white),
+		inset 1px 1px 0 0 var(--w-shadow),
+		inset -2px -2px 0 0 var(--w-face-light),
+		inset 2px 2px 0 0 var(--w-dark);
+}
+
+/* 1px の薄い彫り込み（グループ区切り・ステータスバーのセルなど） */
+.sunken-thin {
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-white),
+		inset 1px 1px 0 0 var(--w-shadow);
+}
+
+/* -------------------------------------------------------- デスクトップ */
+
+.desktop {
+	min-height: calc(100dvh - var(--w-taskbar-h));
+	padding: 8px;
+	background: var(--w-desktop);
+}
+
+/*
+ * トップページ: 広い画面では 2 カラム、狭い画面では縦積み。
+ *
+ * 縦の隙間を作らずに積みたいので、広い画面ではカラムを flex にして
+ * 各カラム内で詰める。狭い画面では .desktop-col を display:contents に
+ * 落として、order で読ませたい順（看板 → 最新記事 → About → ドット絵）に
+ * 並べ替える。
+ */
+.desktop-grid {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 10px;
+	align-content: start;
+}
+
+.desktop-col {
+	display: contents;
+}
+
+@media (min-width: 900px) {
+	.desktop-grid {
+		grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+		align-items: start;
+	}
+
+	.desktop-col {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		min-width: 0;
+	}
+}
+
+@media (max-width: 899px) {
+	.area-main {
+		order: 1;
+	}
+	.area-posts {
+		order: 2;
+	}
+	.area-about {
+		order: 3;
+	}
+	.area-paint {
+		order: 4;
+	}
+}
+
+/* 記事ページなど「1 枚だけ」のレイアウト。本文が長くなりすぎない幅に絞る */
+.desktop-single {
+	max-width: 880px;
+	margin: 0 auto;
+}
+
+/* ------------------------------------------------------------ ウィンドウ */
+
+.win {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	padding: 3px;
+	background: var(--w-face);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-dark),
+		inset 1px 1px 0 0 var(--w-white),
+		inset -2px -2px 0 0 var(--w-shadow),
+		inset 2px 2px 0 0 var(--w-face-light);
+}
+
+/* 最小化されたウィンドウはタスクバーのボタンだけが残る */
+.win[hidden] {
+	display: none;
+}
+
+.win-titlebar {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	min-height: var(--w-titlebar-h);
+	padding: 2px 2px 2px 3px;
+	background: linear-gradient(
+		90deg,
+		var(--w-title-active-1),
+		var(--w-title-active-2)
+	);
+	color: var(--w-title-text);
+	user-select: none;
+}
+
+.win.is-inactive > .win-titlebar {
+	background: linear-gradient(
+		90deg,
+		var(--w-title-inactive-1),
+		var(--w-title-inactive-2)
+	);
+}
+
+.win-titlebar-icon {
+	flex: none;
+	display: block;
+	width: 16px;
+	height: 16px;
+}
+
+.win-titlebar-text {
+	flex: 1 1 auto;
+	min-width: 0;
+	font-size: 12px;
+	font-weight: 700;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.win-controls {
+	flex: none;
+	display: flex;
+	gap: 2px;
+}
+
+.win-ctl {
+	display: grid;
+	place-items: center;
+	width: 16px;
+	height: 14px;
+	padding: 0;
+	border: 0;
+	font: 700 10px/1 var(--w-font-ui);
+	color: var(--w-dark);
+	background: var(--w-face);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-dark),
+		inset 1px 1px 0 0 var(--w-white),
+		inset -2px -2px 0 0 var(--w-shadow),
+		inset 2px 2px 0 0 var(--w-face-light);
+	cursor: pointer;
+}
+
+.win-ctl:active:not(:disabled) {
+	box-shadow:
+		inset 1px 1px 0 0 var(--w-shadow),
+		inset -1px -1px 0 0 var(--w-white),
+		inset 2px 2px 0 0 var(--w-dark);
+}
+
+.win-ctl:disabled {
+	color: var(--w-shadow);
+	cursor: default;
+}
+
+.win-ctl:focus-visible {
+	outline: 1px dotted var(--w-dark);
+	outline-offset: -4px;
+}
+
+/* 「_」「□」「×」は文字だと位置が揃わないので擬似要素で描く */
+.win-ctl-min::before {
+	content: "";
+	width: 6px;
+	height: 2px;
+	margin-top: 5px;
+	background: currentColor;
+}
+
+.win-ctl-max::before {
+	content: "";
+	width: 8px;
+	height: 7px;
+	border: 1px solid currentColor;
+	border-top-width: 2px;
+}
+
+/* ------------------------------------------------------------ メニューバー */
+
+.win-menubar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 1px;
+	padding: 2px 1px;
+	background: var(--w-face);
+}
+
+.win-menubar > a,
+.win-menubar > span {
+	padding: 1px 6px;
+	font-size: 12px;
+	color: var(--w-text);
+	text-decoration: none;
+	white-space: nowrap;
+}
+
+.win-menubar > a:hover,
+.win-menubar > a:focus-visible {
+	background: var(--w-select);
+	color: var(--w-select-text);
+	outline: none;
+}
+
+.win-menubar > a[aria-current="page"] {
+	background: var(--w-select);
+	color: var(--w-select-text);
+}
+
+/* メニュー項目のアクセスキー表記 「ファイル(F)」の (F) を小さく */
+.win-menubar .key {
+	text-decoration: underline;
+}
+
+/* -------------------------------------------------------------- ツールバー */
+
+.win-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px;
+	padding: 3px 2px;
+	background: var(--w-face);
+}
+
+.win-toolbar-sep {
+	width: 2px;
+	align-self: stretch;
+	margin: 0 2px;
+	box-shadow:
+		inset 1px 0 0 0 var(--w-shadow),
+		inset -1px 0 0 0 var(--w-white);
+}
+
+/* アドレスバー */
+.win-address {
+	display: flex;
+	flex: 1 1 220px;
+	align-items: center;
+	gap: 4px;
+	min-width: 0;
+}
+
+.win-address-label {
+	flex: none;
+	font-size: 12px;
+}
+
+.win-address-field {
+	display: flex;
+	flex: 1 1 auto;
+	align-items: center;
+	gap: 4px;
+	min-width: 0;
+	height: 22px;
+	padding: 0 4px;
+	background: var(--w-white);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-white),
+		inset 1px 1px 0 0 var(--w-shadow),
+		inset -2px -2px 0 0 var(--w-face-light),
+		inset 2px 2px 0 0 var(--w-dark);
+}
+
+.win-address-field span {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	font-size: 12px;
+}
+
+/* -------------------------------------------------------------- ボタン */
+
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	min-width: 75px;
+	min-height: 23px;
+	padding: 2px 12px;
+	border: 0;
+	font: 12px/1.4 var(--w-font-ui);
+	color: var(--w-text);
+	text-decoration: none;
+	background: var(--w-face);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-dark),
+		inset 1px 1px 0 0 var(--w-white),
+		inset -2px -2px 0 0 var(--w-shadow),
+		inset 2px 2px 0 0 var(--w-face-light);
+	cursor: pointer;
+}
+
+.btn:active {
+	padding: 3px 11px 1px 13px;
+	box-shadow:
+		inset 1px 1px 0 0 var(--w-shadow),
+		inset -1px -1px 0 0 var(--w-white),
+		inset 2px 2px 0 0 var(--w-dark);
+}
+
+.btn:focus-visible {
+	outline: 1px dotted var(--w-dark);
+	outline-offset: -4px;
+}
+
+.btn-icon {
+	min-width: 0;
+	width: 23px;
+	height: 22px;
+	padding: 0;
+}
+
+.btn-icon:active {
+	padding: 1px 0 0 1px;
+}
+
+/* ------------------------------------------------------ フォームコントロール */
+
+/*
+ * emdash のウィジェット（検索フォームなど）が吐く素の input / button も
+ * ウィンドウの見た目に揃える。管理画面は別レイアウトなので影響しない。
+ */
+input[type="text"],
+input[type="search"],
+input[type="email"],
+input[type="url"],
+input[type="number"],
+textarea,
+select {
+	padding: 3px 5px;
+	border: 0;
+	font: 13px/1.4 var(--w-font-ui);
+	color: var(--w-text);
+	background: var(--w-white);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-white),
+		inset 1px 1px 0 0 var(--w-shadow),
+		inset -2px -2px 0 0 var(--w-face-light),
+		inset 2px 2px 0 0 var(--w-dark);
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+	outline: 1px dotted var(--w-dark);
+	outline-offset: -4px;
+}
+
+button,
+input[type="submit"],
+input[type="button"] {
+	padding: 3px 12px;
+	border: 0;
+	font: 12px/1.4 var(--w-font-ui);
+	color: var(--w-text);
+	background: var(--w-face);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-dark),
+		inset 1px 1px 0 0 var(--w-white),
+		inset -2px -2px 0 0 var(--w-shadow),
+		inset 2px 2px 0 0 var(--w-face-light);
+	cursor: pointer;
+}
+
+button:active,
+input[type="submit"]:active,
+input[type="button"]:active {
+	box-shadow:
+		inset 1px 1px 0 0 var(--w-shadow),
+		inset -1px -1px 0 0 var(--w-white),
+		inset 2px 2px 0 0 var(--w-dark);
+}
+
+/* ウィンドウ枠のボタンは上のルールに上書きされないよう、専用の指定を優先する */
+button.win-ctl,
+button.taskbar-start,
+button.taskbar-item {
+	padding: 0;
+}
+
+button.taskbar-start {
+	padding: 0 6px 0 3px;
+}
+
+button.taskbar-item {
+	padding: 0 6px;
+}
+
+/* -------------------------------------------------------- クライアント領域 */
+
+.win-body {
+	flex: 1 1 auto;
+	min-height: 0;
+	padding: 12px;
+	background: var(--w-white);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-white),
+		inset 1px 1px 0 0 var(--w-shadow),
+		inset -2px -2px 0 0 var(--w-face-light),
+		inset 2px 2px 0 0 var(--w-dark);
+	overflow-wrap: break-word;
+}
+
+/* 背景をグレーのままにしたいとき（ダイアログ風） */
+.win-body-face {
+	padding: 10px;
+	background: var(--w-face);
+	box-shadow: none;
+}
+
+/* 一覧のように中身が端まで届くとき（へこみの白地は残す） */
+.win-body-flush {
+	padding: 2px;
+}
+
+/* スクロールする中身（記事一覧など）の高さ上限 */
+.win-scroll {
+	overflow-y: auto;
+	max-height: min(58vh, 460px);
+}
+
+@media (max-width: 899px) {
+	.win-scroll {
+		max-height: none;
+		overflow-y: visible;
+	}
+}
+
+/* ---------------------------------------------------------- ステータスバー */
+
+.win-status {
+	display: flex;
+	gap: 2px;
+	margin-top: 3px;
+	font-size: 11px;
+	color: var(--w-text);
+}
+
+.win-status > * {
+	padding: 2px 6px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-white),
+		inset 1px 1px 0 0 var(--w-shadow);
+}
+
+.win-status > :first-child {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.win-status > :not(:first-child) {
+	flex: none;
+	min-width: 72px;
+	text-align: right;
+}
+
+@media (max-width: 599px) {
+	/* 狭い画面では右側のセルは邪魔なので隠す */
+	.win-status > :not(:first-child) {
+		display: none;
+	}
+}
+
+/* ------------------------------------------------------------- リスト表示 */
+
+.listview {
+	display: flex;
+	flex-direction: column;
+}
+
+.listview-row {
+	display: grid;
+	grid-template-columns: 20px minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 8px;
+	padding: 3px 6px;
+	color: var(--w-text);
+	text-decoration: none;
+	font-size: 12px;
+}
+
+@media (min-width: 640px) {
+	.listview-row {
+		grid-template-columns: 20px minmax(0, 1fr) 6.5rem minmax(0, 9rem);
+	}
+}
+
+.listview-row:hover,
+.listview-row:focus-visible {
+	background: var(--w-select);
+	color: var(--w-select-text);
+	outline: none;
+}
+
+.listview-row:hover .listview-meta,
+.listview-row:focus-visible .listview-meta {
+	color: var(--w-select-text);
+}
+
+.listview-icon {
+	display: block;
+	width: 16px;
+	height: 16px;
+}
+
+.listview-name {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	text-decoration: underline;
+}
+
+.listview-meta {
+	color: #444;
+	font-size: 11px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+@media (max-width: 639px) {
+	.listview-meta-extra {
+		display: none;
+	}
+}
+
+.listview-empty {
+	padding: 12px;
+	color: var(--w-text-disabled);
+	font-size: 12px;
+}
+
+/* ------------------------------------------------------------ 記事カード */
+
+.post-grid {
+	display: grid;
+	gap: 10px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	grid-template-columns: 1fr;
+}
+
+@media (min-width: 760px) {
+	.post-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+.post-card {
+	display: flex;
+	gap: 10px;
+	padding: 8px;
+	background: var(--w-face);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-dark),
+		inset 1px 1px 0 0 var(--w-white),
+		inset -2px -2px 0 0 var(--w-shadow),
+		inset 2px 2px 0 0 var(--w-face-light);
+}
+
+.post-card-media {
+	flex: none;
+	display: grid;
+	place-items: center;
+	width: 92px;
+	height: 92px;
+	overflow: hidden;
+	background: var(--w-white);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-white),
+		inset 1px 1px 0 0 var(--w-shadow),
+		inset -2px -2px 0 0 var(--w-face-light),
+		inset 2px 2px 0 0 var(--w-dark);
+}
+
+.post-card-media img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.post-card-placeholder {
+	opacity: 0.5;
+}
+
+.post-card-body {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.post-card-title {
+	margin: 0 0 4px;
+	font-size: 14px;
+	line-height: 1.4;
+}
+
+.post-card-title a {
+	color: var(--w-link);
+}
+
+.post-card-excerpt {
+	margin: 0 0 6px;
+	font-size: 12px;
+	line-height: 1.6;
+	color: #333;
+	/* 3 行でクランプ。カードの高さを揃えるため */
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 3;
+	line-clamp: 3;
+	overflow: hidden;
+}
+
+.post-card-meta {
+	margin: 0 0 6px;
+	font-size: 11px;
+	color: #444;
+	font-variant-numeric: tabular-nums;
+}
+
+/* -------------------------------------------------------------- タグ */
+
+.taglist {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	margin: 0;
+}
+
+.tagchip {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 1px 6px;
+	font-size: 11px;
+	color: var(--w-text);
+	text-decoration: none;
+	background: var(--w-face);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-dark),
+		inset 1px 1px 0 0 var(--w-white),
+		inset -2px -2px 0 0 var(--w-shadow),
+		inset 2px 2px 0 0 var(--w-face-light);
+}
+
+.tagchip:visited {
+	color: var(--w-text);
+}
+
+.tagchip:hover,
+.tagchip:focus-visible {
+	box-shadow:
+		inset 1px 1px 0 0 var(--w-shadow),
+		inset -1px -1px 0 0 var(--w-white),
+		inset 2px 2px 0 0 var(--w-dark);
+	outline: none;
+}
+
+/* --------------------------------------------------------------- 本文 */
+
+.prose {
+	font-size: 14px;
+	line-height: 1.85;
+}
+
+.prose > :first-child {
+	margin-top: 0;
+}
+
+.prose > :last-child {
+	margin-bottom: 0;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+	margin: 1.6em 0 0.6em;
+	line-height: 1.4;
+	font-weight: 700;
+}
+
+.prose h1 {
+	font-size: 22px;
+}
+
+.prose h2 {
+	font-size: 18px;
+	padding-left: 10px;
+	border-left: 5px solid var(--w-title-active-1);
+}
+
+.prose h3 {
+	font-size: 15px;
+}
+
+.prose p,
+.prose ul,
+.prose ol,
+.prose blockquote,
+.prose figure,
+.prose pre {
+	margin: 0 0 1em;
+}
+
+.prose ul,
+.prose ol {
+	padding-left: 1.6em;
+}
+
+.prose li {
+	margin-bottom: 0.3em;
+}
+
+.prose blockquote {
+	padding: 8px 12px;
+	background: var(--w-face-light);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-white),
+		inset 1px 1px 0 0 var(--w-shadow);
+}
+
+.prose pre {
+	padding: 10px;
+	font-family: var(--w-font-mono);
+	font-size: 12px;
+	overflow-x: auto;
+	background: var(--w-face-light);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-white),
+		inset 1px 1px 0 0 var(--w-shadow);
+}
+
+.prose code {
+	font-family: var(--w-font-mono);
+	font-size: 0.92em;
+}
+
+.prose hr {
+	height: 2px;
+	margin: 1.6em 0;
+	border: 0;
+	background: none;
+	box-shadow:
+		inset 0 1px 0 0 var(--w-shadow),
+		inset 0 -1px 0 0 var(--w-white);
+}
+
+.prose img {
+	display: block;
+}
+
+.prose table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+}
+
+.prose th,
+.prose td {
+	padding: 4px 8px;
+	border: 1px solid var(--w-shadow);
+	text-align: left;
+}
+
+/* 横に伸びる要素はウィンドウ内でだけ横スクロールさせる */
+.scroll-x {
+	overflow-x: auto;
+}
+
+a {
+	color: var(--w-link);
+}
+
+a:visited {
+	color: var(--w-link-visited);
+}
+
+a:focus-visible {
+	outline: 1px dotted var(--w-dark);
+	outline-offset: 2px;
+}
+
+/* -------------------------------------------------------------- 見出し看板 */
+
+/* 参考画像の「インターネット / THE INTERNET」の看板 */
+.signboard {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 14px;
+	padding: clamp(28px, 8vw, 72px) 16px;
+	text-align: center;
+}
+
+.signboard-title {
+	margin: 0;
+	padding: clamp(10px, 3vw, 22px) clamp(16px, 6vw, 48px);
+	border: 3px solid var(--w-dark);
+	font-size: clamp(24px, 7vw, 44px);
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	line-height: 1.25;
+}
+
+.signboard-tagline {
+	display: inline-block;
+	margin: 0;
+	padding: 4px 14px;
+	background: var(--w-dark);
+	color: var(--w-white);
+	font-size: clamp(10px, 2.6vw, 13px);
+	font-weight: 700;
+	letter-spacing: 0.42em;
+	/* letter-spacing のぶん右にずれるので相殺 */
+	text-indent: 0.42em;
+	text-transform: uppercase;
+}
+
+/* ------------------------------------------------------------ ペイント枠 */
+
+.paint {
+	display: flex;
+	gap: 3px;
+}
+
+.paint-tools {
+	flex: none;
+	display: grid;
+	grid-template-columns: repeat(2, 16px);
+	gap: 1px;
+	align-content: start;
+	padding: 2px;
+	background: var(--w-face);
+}
+
+@media (max-width: 480px) {
+	.paint-tools {
+		display: none;
+	}
+}
+
+.paint-tool {
+	width: 16px;
+	height: 15px;
+	background: var(--w-face);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-dark),
+		inset 1px 1px 0 0 var(--w-white),
+		inset -2px -2px 0 0 var(--w-shadow),
+		inset 2px 2px 0 0 var(--w-face-light);
+}
+
+.paint-canvas {
+	flex: 1 1 auto;
+	min-width: 0;
+	display: grid;
+	place-items: center;
+	padding: 4px;
+	background: var(--w-white);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-white),
+		inset 1px 1px 0 0 var(--w-shadow),
+		inset -2px -2px 0 0 var(--w-face-light),
+		inset 2px 2px 0 0 var(--w-dark);
+}
+
+.paint-canvas svg {
+	display: block;
+	width: 100%;
+	height: auto;
+	max-width: 560px;
+	image-rendering: pixelated;
+}
+
+/* ------------------------------------------------------------- タスクバー */
+
+.taskbar {
+	position: fixed;
+	inset: auto 0 0 0;
+	z-index: 100;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	height: var(--w-taskbar-h);
+	padding: 2px 3px;
+	background: var(--w-face);
+	box-shadow:
+		inset 0 1px 0 0 var(--w-white),
+		inset 0 2px 0 0 var(--w-face-light);
+}
+
+.taskbar-start {
+	flex: none;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	height: 22px;
+	padding: 0 6px 0 3px;
+	border: 0;
+	font: 700 12px/1 var(--w-font-ui);
+	color: var(--w-text);
+	background: var(--w-face);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-dark),
+		inset 1px 1px 0 0 var(--w-white),
+		inset -2px -2px 0 0 var(--w-shadow),
+		inset 2px 2px 0 0 var(--w-face-light);
+	cursor: pointer;
+}
+
+.taskbar-start[aria-expanded="true"],
+.taskbar-start:active {
+	box-shadow:
+		inset 1px 1px 0 0 var(--w-shadow),
+		inset -1px -1px 0 0 var(--w-white),
+		inset 2px 2px 0 0 var(--w-dark);
+}
+
+.taskbar-sep {
+	flex: none;
+	width: 2px;
+	height: 20px;
+	box-shadow:
+		inset 1px 0 0 0 var(--w-shadow),
+		inset -1px 0 0 0 var(--w-white);
+}
+
+.taskbar-items {
+	flex: 1 1 auto;
+	display: flex;
+	gap: 3px;
+	min-width: 0;
+	overflow: hidden;
+}
+
+.taskbar-item {
+	flex: 0 1 160px;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	min-width: 40px;
+	height: 22px;
+	padding: 0 6px;
+	border: 0;
+	font: 12px/1 var(--w-font-ui);
+	color: var(--w-text);
+	text-align: left;
+	background: var(--w-face);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-dark),
+		inset 1px 1px 0 0 var(--w-white),
+		inset -2px -2px 0 0 var(--w-shadow),
+		inset 2px 2px 0 0 var(--w-face-light);
+	cursor: pointer;
+}
+
+.taskbar-item span {
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+
+.taskbar-item img,
+.taskbar-item svg {
+	flex: none;
+	width: 14px;
+	height: 14px;
+}
+
+/* 表示中のウィンドウ = 押し込まれた状態 */
+.taskbar-item.is-active {
+	font-weight: 700;
+	background: var(--w-face);
+	background-image: linear-gradient(
+			45deg,
+			var(--w-white) 25%,
+			transparent 25%,
+			transparent 75%,
+			var(--w-white) 75%
+		),
+		linear-gradient(
+			45deg,
+			var(--w-white) 25%,
+			transparent 25%,
+			transparent 75%,
+			var(--w-white) 75%
+		);
+	background-size: 2px 2px;
+	background-position:
+		0 0,
+		1px 1px;
+	box-shadow:
+		inset 1px 1px 0 0 var(--w-shadow),
+		inset -1px -1px 0 0 var(--w-white),
+		inset 2px 2px 0 0 var(--w-dark);
+}
+
+.taskbar-tray {
+	flex: none;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	height: 22px;
+	padding: 0 8px;
+	font-size: 12px;
+	font-variant-numeric: tabular-nums;
+	box-shadow:
+		inset 1px 1px 0 0 var(--w-shadow),
+		inset -1px -1px 0 0 var(--w-white);
+}
+
+@media (max-width: 480px) {
+	.taskbar-tray {
+		padding: 0 6px;
+	}
+	.taskbar-start span {
+		display: none;
+	}
+}
+
+/* ------------------------------------------------------------ スタートメニュー */
+
+.startmenu {
+	position: fixed;
+	left: 3px;
+	bottom: calc(var(--w-taskbar-h) - 1px);
+	z-index: 110;
+	display: flex;
+	width: min(300px, calc(100vw - 6px));
+	padding: 3px;
+	background: var(--w-face);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-dark),
+		inset 1px 1px 0 0 var(--w-white),
+		inset -2px -2px 0 0 var(--w-shadow),
+		inset 2px 2px 0 0 var(--w-face-light);
+}
+
+.startmenu[hidden] {
+	display: none;
+}
+
+/* 左端の縦帯 */
+.startmenu-rail {
+	flex: none;
+	width: 22px;
+	background: linear-gradient(
+		180deg,
+		var(--w-title-active-2),
+		var(--w-title-active-1)
+	);
+	color: var(--w-white);
+}
+
+.startmenu-rail span {
+	display: block;
+	padding-bottom: 8px;
+	font-size: 15px;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	white-space: nowrap;
+	writing-mode: vertical-rl;
+	transform: rotate(180deg);
+	text-orientation: sideways;
+}
+
+.startmenu-list {
+	flex: 1 1 auto;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	margin: 0;
+	padding: 2px 0 2px 4px;
+	list-style: none;
+}
+
+.startmenu-list a {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 5px 8px;
+	color: var(--w-text);
+	font-size: 13px;
+	text-decoration: none;
+}
+
+.startmenu-list a:hover,
+.startmenu-list a:focus-visible {
+	background: var(--w-select);
+	color: var(--w-select-text);
+	outline: none;
+}
+
+.startmenu-list a svg {
+	flex: none;
+	width: 20px;
+	height: 20px;
+}
+
+.startmenu-divider {
+	height: 2px;
+	margin: 3px 4px;
+	box-shadow:
+		inset 0 1px 0 0 var(--w-shadow),
+		inset 0 -1px 0 0 var(--w-white);
+}
+
+.startmenu-search {
+	padding: 6px 8px 8px;
+}
+
+.startmenu-search input,
+.startmenu-search [type="search"],
+.startmenu-search [type="text"] {
+	width: 100%;
+	height: 22px;
+	padding: 2px 4px;
+	border: 0;
+	font: 12px/1.4 var(--w-font-ui);
+	background: var(--w-white);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-white),
+		inset 1px 1px 0 0 var(--w-shadow),
+		inset -2px -2px 0 0 var(--w-face-light),
+		inset 2px 2px 0 0 var(--w-dark);
+}
+
+/* ------------------------------------------------------- アーカイブ見出し */
+
+.archive-title {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 8px;
+	margin: 0 0 14px;
+	font-size: 20px;
+	line-height: 1.3;
+}
+
+.archive-kind {
+	padding: 2px 8px;
+	background: var(--w-title-active-1);
+	color: var(--w-title-text);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+}
+
+/* ---------------------------------------------------------------- 記事 */
+
+.entry-head {
+	margin-bottom: 18px;
+	padding-bottom: 10px;
+	box-shadow: inset 0 -2px 0 -1px var(--w-shadow);
+}
+
+.entry-head h1 {
+	margin: 0 0 8px;
+	font-size: clamp(20px, 4.5vw, 28px);
+	line-height: 1.35;
+}
+
+.entry-meta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px;
+	margin: 0;
+	font-size: 12px;
+	color: #444;
+	font-variant-numeric: tabular-nums;
+}
+
+.entry-figure {
+	margin: 0 0 18px;
+	padding: 4px;
+	background: var(--w-face);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-dark),
+		inset 1px 1px 0 0 var(--w-white),
+		inset -2px -2px 0 0 var(--w-shadow),
+		inset 2px 2px 0 0 var(--w-face-light);
+}
+
+.entry-figure img {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+
+.entry-foot {
+	margin-top: 24px;
+	padding-top: 12px;
+	box-shadow: inset 0 2px 0 -1px var(--w-shadow);
+}
+
+.entry-sep {
+	height: 2px;
+	margin: 18px 0;
+	border: 0;
+	background: none;
+	box-shadow:
+		inset 0 1px 0 0 var(--w-shadow),
+		inset 0 -1px 0 0 var(--w-white);
+}
+
+/* -------------------------------------------------------------- ダイアログ */
+
+.dialog {
+	display: flex;
+	align-items: flex-start;
+	gap: 16px;
+	padding: 8px 0 4px;
+}
+
+.dialog-icon {
+	flex: none;
+	width: 40px;
+	height: 40px;
+}
+
+.dialog-title {
+	margin: 0 0 8px;
+	font-size: 16px;
+}
+
+.dialog-text {
+	margin: 0;
+	font-size: 13px;
+	line-height: 1.7;
+}
+
+.dialog-actions {
+	justify-content: flex-end;
+	margin-top: 18px;
+}
+
+/* ------------------------------------------------------------ ウィジェット */
+
+/* WidgetArea が吐く見出し / リストを最低限それらしく整える */
+.widgets {
+	display: grid;
+	gap: 10px;
+}
+
+.widgets h2,
+.widgets h3 {
+	margin: 0 0 6px;
+	padding: 2px 6px;
+	font-size: 12px;
+	background: linear-gradient(
+		90deg,
+		var(--w-title-active-1),
+		var(--w-title-active-2)
+	);
+	color: var(--w-title-text);
+}
+
+.widgets ul {
+	margin: 0;
+	padding-left: 1.4em;
+	font-size: 13px;
+}
+
+/* ------------------------------------------------------------ その他 */
+
+.visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+.stack {
+	display: grid;
+	gap: 10px;
+}
+
+.row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+}
+
+.muted {
+	color: #555;
+	font-size: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		transition-duration: 0.01ms !important;
+	}
+}
