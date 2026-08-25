@@ -32,15 +32,15 @@ A general-purpose starting point for building sites with [EmDash](https://github
 
 ## Pages
 
-| Page | Route |
-|---|---|
-| Homepage | `/` |
-| All posts | `/posts` |
-| Single post | `/posts/:slug` |
+| Page             | Route             |
+| ---------------- | ----------------- |
+| Homepage         | `/`               |
+| All posts        | `/posts`          |
+| Single post      | `/posts/:slug`    |
 | Category archive | `/category/:slug` |
-| Tag archive | `/tag/:slug` |
-| Static pages | `/:slug` |
-| 404 | fallback |
+| Tag archive      | `/tag/:slug`      |
+| Static pages     | `/:slug`          |
+| 404              | fallback          |
 
 ## Infrastructure
 

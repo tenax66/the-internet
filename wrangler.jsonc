@@ -1,31 +1,33 @@
 {
-	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "the-internet",
-	"main": "./src/worker.ts",
-	"compatibility_date": "2026-02-24",
-	"compatibility_flags": ["nodejs_compat"],
-	"d1_databases": [
-		{
-			"binding": "DB",
-			"database_name": "the-internet-db",
-		},
-	],
-	"r2_buckets": [
-		{
-			"binding": "MEDIA",
-			"bucket_name": "the-internet-media",
-		},
-	],
-	// Worker Loader for plugin sandboxing.
-	// Dynamic Workers は Workers 有料プラン($5/月〜)限定のため、無料プランでは無効化。
-	// 有料プランに切り替えたら下のコメントを外すとプラグインが使えるようになる。
-	// "worker_loaders": [
-	// 	{
-	// 		"binding": "LOADER",
-	// 	},
-	// ],
-	// Drives scheduled publishing, plugin cron, and maintenance (see src/worker.ts)
-	"triggers": {
-		"crons": ["* * * * *"],
-	},
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "the-internet",
+  "main": "./src/worker.ts",
+  "compatibility_date": "2026-02-24",
+  "compatibility_flags": ["nodejs_compat"],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "the-internet-db",
+      "migrations_dir": "../../migrations",
+      "database_id": "9477b7da-29d4-4f5b-8e2e-a03bd10826b4",
+    },
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "the-internet-media",
+    },
+  ],
+  // Worker Loader for plugin sandboxing.
+  // Dynamic Workers は Workers 有料プラン($5/月〜)限定のため、無料プランでは無効化。
+  // 有料プランに切り替えたら下のコメントを外すとプラグインが使えるようになる。
+  // "worker_loaders": [
+  // 	{
+  // 		"binding": "LOADER",
+  // 	},
+  // ],
+  // Drives scheduled publishing, plugin cron, and maintenance (see src/worker.ts)
+  "triggers": {
+    "crons": ["* * * * *"],
+  },
 }
