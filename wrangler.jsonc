@@ -8,7 +8,6 @@
     {
       "binding": "DB",
       "database_name": "the-internet-db",
-      "migrations_dir": "../../migrations",
       "database_id": "9477b7da-29d4-4f5b-8e2e-a03bd10826b4",
     },
   ],
