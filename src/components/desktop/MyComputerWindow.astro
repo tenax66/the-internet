@@ -52,7 +52,6 @@ const drives = [
 
 /** カテゴリはフォルダとして並べる。多すぎると窓からあふれるので上限を切る */
 const folders = categories.slice(0, 6);
-const itemCount = drives.length + folders.length;
 ---
 
 <Window
@@ -64,12 +63,6 @@ const itemCount = drives.length + folders.length;
 	col={col}
 	row={row}
 >
-	<div class="win-menubar" slot="menubar">
-		<span>ファイル(<span class="key">F</span>)</span>
-		<span>編集(<span class="key">E</span>)</span>
-		<span>表示(<span class="key">V</span>)</span>
-	</div>
-
 	<div class="iconview">
 		{
 			drives.map((d) => (
@@ -90,9 +83,4 @@ const itemCount = drives.length + folders.length;
 			))
 		}
 	</div>
-
-	<Fragment slot="status">
-		<span>{itemCount} 個のオブジェクト</span>
-		<span>マイ コンピュータ</span>
-	</Fragment>
 </Window>

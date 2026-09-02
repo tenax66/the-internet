@@ -4,7 +4,7 @@ import { EmDashHead, EmDashBodyStart, EmDashBodyEnd } from "emdash/ui";
 import { createPublicPageContext } from "emdash/page";
 import Taskbar from "../components/Taskbar.astro";
 import Window from "../components/Window.astro";
-import Icon from "../components/Icon.astro";
+import type { IconName } from "../utils/icons";
 import {
 	BROWSER_NAME,
 	resolveStarterSiteIdentity,
@@ -20,29 +20,19 @@ interface Props {
 	/** Pass content reference for plugin page contributions on content pages */
 	content?: { collection: string; id: string; slug?: string | null };
 	/**
-	 * desktop = 中身を自分でウィンドウに分けて並べる（トップページ）
-	 * window  = 中身を 1 枚のウィンドウで包む（記事・一覧など）
+	 * desktop = 中身を自分でウィンドウに分けて並べる（トップページだけ）
+	 * window  = 中身を画面いっぱいの 1 枚のウィンドウで包む（記事・一覧など）
 	 */
 	chrome?: "desktop" | "window";
 	/** chrome="window" のときタイトルバーに出す文字。既定は `title - ${BROWSER_NAME}` */
 	windowTitle?: string;
-	windowIcon?:
-		| "document"
-		| "paint"
-		| "browser"
-		| "folder"
-		| "folder-open"
-		| "computer"
-		| "settings"
-		| "notepad"
-		| "media"
-		| "world"
-		| "warning"
-		| "network"
-		| "chip"
-		| "mail";
+	windowIcon?: IconName;
 	/** ステータスバー左のテキスト */
 	status?: string;
+	/** ステータスバー右のテキスト */
+	statusExtra?: string;
+	/** 本文を読みやすい幅で中央寄せする（記事・固定ページ向け） */
+	narrow?: boolean;
 }
 
 const {
@@ -56,9 +46,11 @@ const {
 	windowTitle,
 	windowIcon = "browser",
 	status = "ページが表示されました",
+	statusExtra = "インターネット",
+	narrow = false,
 } = Astro.props;
 
-const { siteTitle, siteTagline, siteLogo } = resolveStarterSiteIdentity(
+const { siteTitle, siteTagline } = resolveStarterSiteIdentity(
 	await getSiteSettings(),
 );
 const fullTitle = title.includes(siteTitle) ? title : `${title} — ${siteTitle}`;
@@ -67,22 +59,30 @@ const pageDescription = description ?? siteTagline;
 const menu = await getMenu("primary");
 const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/";
 
-/** メニューバーに出すナビ。emdash の primary メニュー + 固定ルート */
-const menuItems = (menu?.items ?? []).map((item) => ({
-	label: item.label,
-	url: item.url,
-	target: item.target ?? null,
-}));
-const menuUrls = new Set(
-	menuItems.map((i) => i.url.replace(/\/$/, "") || "/"),
-);
-const navItems = [
-	...menuItems,
-	...[
-		{ label: "記事一覧", url: "/posts", target: null },
-		{ label: "ページ一覧", url: "/pages", target: null },
-	].filter((i) => !menuUrls.has(i.url)),
+/*
+ * 画面上部のバーに並べるナビ。
+ * ブログの主要機能（ホーム / 記事一覧 / ページ一覧）は常に出し、そのうしろに
+ * emdash の primary メニューで足された項目を並べる。URL が重なったものは省く。
+ */
+const normalizeUrl = (url: string) => url.replace(/\/$/, "") || "/";
+
+const builtinNav: { label: string; url: string; icon: IconName }[] = [
+	{ label: "ホーム", url: "/", icon: "home" },
+	{ label: "記事一覧", url: "/posts", icon: "folder" },
+	{ label: "ページ一覧", url: "/pages", icon: "document" },
 ];
+const builtinUrls = new Set(builtinNav.map((i) => normalizeUrl(i.url)));
+
+const menuItems = (menu?.items ?? [])
+	.map((item) => ({
+		label: item.label,
+		url: item.url,
+		target: item.target ?? null,
+		icon: "browser" as IconName,
+	}))
+	.filter((item) => !builtinUrls.has(normalizeUrl(item.url)));
+
+const navItems = [...builtinNav, ...menuItems];
 
 const pageCtx = createPublicPageContext({
 	Astro,
@@ -98,7 +98,6 @@ const pageCtx = createPublicPageContext({
 });
 
 const barTitle = windowTitle ?? `${title} - ${BROWSER_NAME}`;
-const addressUrl = `${Astro.url.origin}${Astro.url.pathname}`;
 ---
 
 <!doctype html>
@@ -121,68 +120,24 @@ const addressUrl = `${Astro.url.origin}${Astro.url.pathname}`;
 					<slot />
 				) : (
 					<div class="desktop-single">
-						<Window id="page" title={barTitle} icon={windowIcon}>
-							<div class="win-menubar" slot="menubar">
-								<a href="/">
-									{siteLogo ? (
-										<img
-											src={siteLogo.url}
-											alt={siteLogo.alt || siteTitle}
-											style="height:14px;width:auto;display:block"
-										/>
-									) : (
-										siteTitle
-									)}
-								</a>
-								{navItems.map((item) => (
-									<a
-										href={item.url}
-										target={item.target ?? undefined}
-										aria-current={
-											(item.url.replace(/\/$/, "") || "/") === currentPath
-												? "page"
-												: undefined
-										}
-									>
-										{item.label}
-									</a>
-								))}
-							</div>
-
-							<div class="win-toolbar" slot="toolbar">
-								<a
-									class="btn btn-icon"
-									href="/"
-									title="ホームへ"
-									aria-label="ホームへ"
-								>
-									<Icon name="home" />
-								</a>
-								<a
-									class="btn btn-icon"
-									href="/posts"
-									title="記事一覧へ"
-									aria-label="記事一覧へ"
-								>
-									<Icon name="folder" />
-								</a>
-								<div class="win-toolbar-sep" aria-hidden="true" />
-								<div class="win-address">
-									<span class="win-address-label">アドレス</span>
-									<div class="win-address-field">
-										<Icon name="browser" />
-										<span>{addressUrl}</span>
-									</div>
-								</div>
-							</div>
-
-							<div class="win-content">
+						{/*
+						 * 下層ページは窓 1 枚。メニュー行もアドレスバーも持たず、
+						 * 画面の上下左右いっぱいに広がる。
+						 */}
+						<Window
+							id="page"
+							class="win-page"
+							title={barTitle}
+							icon={windowIcon}
+							closable={false}
+						>
+							<div class:list={["win-content", narrow && "win-content-narrow"]}>
 								<slot />
 							</div>
 
 							<Fragment slot="status">
 								<span>{status}</span>
-								<span>インターネット</span>
+								<span>{statusExtra}</span>
 							</Fragment>
 						</Window>
 					</div>
@@ -191,9 +146,10 @@ const addressUrl = `${Astro.url.origin}${Astro.url.pathname}`;
 		</div>
 
 		<Taskbar
-			items={menuItems}
+			navItems={navItems}
 			currentPath={currentPath}
 			railTitle={siteTitle}
+			showWindowActions={chrome === "desktop"}
 		/>
 
 		<script>

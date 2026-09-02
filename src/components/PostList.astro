@@ -29,7 +29,15 @@ const dateFormat = new Intl.DateTimeFormat("ja-JP", {
 		<ul class="post-grid">
 			{items.map(({ post, tags = [] }) => (
 				<li class="post-card">
-					<a class="post-card-media" href={`/posts/${post.id}`} tabindex="-1" aria-hidden="true">
+					<a
+						class:list={[
+							"post-card-media",
+							!post.data.featured_image && "post-card-media-empty",
+						]}
+						href={`/posts/${post.id}`}
+						tabindex="-1"
+						aria-hidden="true"
+					>
 						{post.data.featured_image ? (
 							<Image image={post.data.featured_image} width={480} />
 						) : (

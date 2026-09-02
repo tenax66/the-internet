@@ -1,33 +1,18 @@
 ---
 import Icon from "./Icon.astro";
+import type { IconName } from "../utils/icons";
 
 /**
  * Win95 風のウィンドウ枠。
  *
+ * 「ファイル(F) 編集(E)」のメニュー行やアドレスバーは置かない。窓は
+ * タイトルバー + 中身（+ 任意でステータスバー）だけのシンプルな構成にして、
+ * ナビゲーションは画面上部のバーに一本化している。
+ *
  * スロット:
- *   menubar  タイトルバーの下のメニュー行（ナビとして使う）
- *   toolbar  アイコンボタン / アドレスバーの行
  *   default  クライアント領域の中身
  *   status   ステータスバーのセル（<span> を並べる。1 つ目が左寄せで伸びる）
  */
-type IconName =
-	| "document"
-	| "paint"
-	| "browser"
-	| "folder"
-	| "folder-open"
-	| "computer"
-	| "settings"
-	| "notepad"
-	| "media"
-	| "world"
-	| "warning"
-	| "network"
-	| "chip"
-	| "mail"
-	| "dos"
-	| "cards";
-
 interface Props {
 	/** タスクバーのボタンと結びつく ID */
 	id: string;
@@ -88,22 +73,6 @@ const spanStyle = [
 		<div class="win-controls">
 			<button
 				type="button"
-				class="win-ctl win-ctl-min"
-				data-window-action="minimize"
-				title="最小化"
-			>
-				<span class="visually-hidden">最小化</span>
-			</button>
-			<button
-				type="button"
-				class="win-ctl win-ctl-max"
-				disabled
-				title="最大化（このサイトでは使えません）"
-			>
-				<span class="visually-hidden">最大化</span>
-			</button>
-			<button
-				type="button"
 				class="win-ctl"
 				data-window-action="close"
 				disabled={!closable}
@@ -114,9 +83,6 @@ const spanStyle = [
 			</button>
 		</div>
 	</div>
-
-	<slot name="menubar" />
-	<slot name="toolbar" />
 
 	<div class:list={["win-body", bodyClass]}>
 		<slot />

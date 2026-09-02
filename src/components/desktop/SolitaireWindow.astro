@@ -76,12 +76,6 @@ const wasteCard = parse(waste);
 	col={col}
 	row={row}
 >
-	<div class="win-menubar" slot="menubar">
-		<span>ゲーム(<span class="key">G</span>)</span>
-		<span>表示(<span class="key">V</span>)</span>
-		<span>ヘルプ(<span class="key">H</span>)</span>
-	</div>
-
 	{/* 盤面はただの飾りなので、読み上げには渡さない */}
 	<div class="solitaire" aria-hidden="true">
 		<div class="sol-top">
@@ -130,9 +124,4 @@ const wasteCard = parse(waste);
 			}
 		</div>
 	</div>
-
-	<Fragment slot="status">
-		<span>スコア 380</span>
-		<span>経過時間 154</span>
-	</Fragment>
 </Window>

@@ -81,15 +81,17 @@ const dateFormat = new Intl.DateTimeFormat("ja-JP", {
  */
 const clampRow = (n: number, min: number, max: number) =>
 	Math.max(min, Math.min(max, n));
-const postsRow = clampRow(16 + recent.length * 4, 20, 48);
-const notepadRow = clampRow(12 + changelog.length * 3, 16, 36);
+const postsRow = clampRow(11 + recent.length * 4, 15, 43);
+const notepadRow = clampRow(9 + changelog.length * 3, 13, 33);
 ---
 
 <Base title={siteTitle} description={siteTagline} chrome="desktop">
 	{/*
-	 * 窓は .desktop-grid の直下に並べる。並び順 = モバイルでの縦積み順 =
-	 * タスクバーのボタン順なので、大事なものから書く。広い画面での配置は
-	 * 各窓の col / row（grid の span）と grid-auto-flow: dense に任せる。
+	 * 窓が乱立するのはこのトップページだけ。下層ページは 1 枚の窓になる。
+	 *
+	 * 窓は .desktop-grid の直下に並べる。並び順 = モバイルでの縦積み順なので、
+	 * 大事なものから書く。広い画面での配置は各窓の col / row（grid の span）と
+	 * grid-auto-flow: dense に任せる。
 	 */}
 	<div class="desktop-grid">
 		{/* ---------------------------------------------- 看板ウィンドウ */}
@@ -100,43 +102,12 @@ const notepadRow = clampRow(12 + changelog.length * 3, 16, 36);
 			title={`${siteTitle} - ${siteTagline}`}
 			closable={false}
 			col={2}
-			row={46}
+			row={37}
 		>
-			<div class="win-menubar" slot="menubar">
-				<span>ファイル(<span class="key">F</span>)</span>
-				<span>編集(<span class="key">E</span>)</span>
-				<span>表示(<span class="key">V</span>)</span>
-				<a href="/posts">記事(<span class="key">P</span>)</a>
-				<a href="/pages">ページ(<span class="key">G</span>)</a>
-			</div>
-
-			<div class="win-toolbar" slot="toolbar">
-				<a class="btn btn-icon" href="/posts" title="記事一覧" aria-label="記事一覧">
-					<Icon name="folder" />
-				</a>
-				<a class="btn btn-icon" href="/pages" title="ページ一覧" aria-label="ページ一覧">
-					<Icon name="document" />
-				</a>
-				<div class="win-toolbar-sep" aria-hidden="true"></div>
-				<a
-					class="btn btn-icon"
-					href="/about"
-					title="このサイトについて"
-					aria-label="このサイトについて"
-				>
-					<Icon name="browser" />
-				</a>
-			</div>
-
 			<div class="signboard">
 				<h1 class="signboard-title">{siteTitle}</h1>
 				<p class="signboard-tagline">{siteTagline}</p>
 			</div>
-
-			<Fragment slot="status">
-				<span>ヘルプを表示するには [ヘルプ] メニューから [トピックの検索] をクリック</span>
-				<span>1/1</span>
-			</Fragment>
 		</Window>
 
 		{/* -------------------------------------------------- 最新記事 */}
@@ -149,13 +120,6 @@ const notepadRow = clampRow(12 + changelog.length * 3, 16, 36);
 			col={2}
 			row={postsRow}
 		>
-			<div class="win-menubar" slot="menubar">
-				<span>ファイル(<span class="key">F</span>)</span>
-				<span>編集(<span class="key">E</span>)</span>
-				<span>表示(<span class="key">V</span>)</span>
-				<a href="/posts">すべて表示(<span class="key">A</span>)</a>
-			</div>
-
 			<div class="win-scroll">
 				{
 					recent.length === 0 ? (
@@ -188,11 +152,6 @@ const notepadRow = clampRow(12 + changelog.length * 3, 16, 36);
 					)
 				}
 			</div>
-
-			<Fragment slot="status">
-				<span>{posts.length} 個のオブジェクト</span>
-				<span>{recent.length} 件表示</span>
-			</Fragment>
 		</Window>
 
 		{/* ---------------------------------------- このサイトについて */}
@@ -202,24 +161,8 @@ const notepadRow = clampRow(12 + changelog.length * 3, 16, 36);
 			icon="browser"
 			title={`${about?.data.title ?? "このサイトについて"} - ${BROWSER_NAME}`}
 			col={2}
-			row={30}
+			row={23}
 		>
-			<div class="win-toolbar" slot="toolbar">
-				<span class="btn btn-icon" aria-hidden="true"><Icon name="back" /></span>
-				<span class="btn btn-icon" aria-hidden="true"><Icon name="forward" /></span>
-				<span class="btn btn-icon" aria-hidden="true"><Icon name="stop" /></span>
-				<a class="btn btn-icon" href="/" title="ホーム" aria-label="ホーム">
-					<Icon name="home" />
-				</a>
-				<div class="win-address">
-					<span class="win-address-label">アドレス</span>
-					<div class="win-address-field">
-						<Icon name="browser" />
-						<span>{`${Astro.url.origin}/about`}</span>
-					</div>
-				</div>
-			</div>
-
 			<div class="prose">
 				{
 					about ? (
@@ -238,11 +181,6 @@ const notepadRow = clampRow(12 + changelog.length * 3, 16, 36);
 				{about && <a class="btn" href="/about">続きを読む</a>}
 				<a class="btn" href="/pages">ページ一覧</a>
 			</div>
-
-			<Fragment slot="status">
-				<span>ページが表示されました</span>
-				<span>インターネット</span>
-			</Fragment>
 		</Window>
 
 		{/* ------------------------------------------ マイ コンピュータ */}
@@ -251,11 +189,11 @@ const notepadRow = clampRow(12 + changelog.length * 3, 16, 36);
 			pageCount={pages.length}
 			categories={categories}
 			col={1}
-			row={32}
+			row={27}
 		/>
 
 		{/* ---------------------------------------- コントロール パネル */}
-		<ControlPanelWindow tags={tags} col={1} row={24} />
+		<ControlPanelWindow tags={tags} col={1} row={19} />
 
 		{/* -------------------------------------------------- ドット絵 */}
 		<Window
@@ -268,14 +206,6 @@ const notepadRow = clampRow(12 + changelog.length * 3, 16, 36);
 			row={50}
 			fit
 		>
-			<div class="win-menubar" slot="menubar">
-				<span>ファイル(<span class="key">F</span>)</span>
-				<span>編集(<span class="key">E</span>)</span>
-				<span>表示(<span class="key">V</span>)</span>
-				<span>変形(<span class="key">I</span>)</span>
-				<span>色(<span class="key">C</span>)</span>
-			</div>
-
 			<div class="paint">
 				<div class="paint-tools" aria-hidden="true">
 					{Array.from({ length: 16 }).map(() => <span class="paint-tool" />)}
@@ -284,21 +214,16 @@ const notepadRow = clampRow(12 + changelog.length * 3, 16, 36);
 					<PixelArt />
 				</div>
 			</div>
-
-			<Fragment slot="status">
-				<span>ヘルプを表示するには F1 キーを押してください</span>
-				<span>280 × 220</span>
-			</Fragment>
 		</Window>
 
 		{/* -------------------------------------------------- 更新履歴 */}
 		<NotepadWindow entries={changelog} col={1} row={notepadRow} />
 
 		{/* -------------------------------------------------- ソリティア */}
-		<SolitaireWindow col={1} row={30} />
+		<SolitaireWindow col={1} row={25} />
 
 		{/* -------------------------------------------------- お気に入り */}
-		<LinksWindow links={favorites} col={1} row={22} />
+		<LinksWindow links={favorites} col={1} row={17} />
 
 		{/* ------------------------------------------------- 飾りの窓たち */}
 		<NoLongerExistsWindow col={1} row={24} />

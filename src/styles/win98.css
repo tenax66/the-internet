@@ -4,11 +4,13 @@
  * 使い方のメモ:
  *   .win            ウィンドウ枠（外側の立体ベベル）
  *   .win-titlebar   青グラデのタイトルバー
- *   .win-menubar    ファイル(F) 編集(E) … のメニュー行。実際のナビにも使う
- *   .win-toolbar    アイコンボタン / アドレスバーの行
  *   .win-body       クライアント領域
  *   .win-status     ステータスバー
+ *   .win-page       下層ページの「画面いっぱいの窓」
  *   .sunken / .raised  へこみ / 出っぱりのベベル（単体で使える）
+ *
+ * 窓の中にメニュー行やアドレスバーは置かない。ナビゲーションは画面上部の
+ * バー（.taskbar）に一本化していて、そちらはリンクとして機能する。
  */
 
 :root {
@@ -39,8 +41,6 @@
 	/* --- 寸法 --- */
 	--w-taskbar-h: 30px;
 	--w-titlebar-h: 20px;
-	/* 窓どうし・画面端のすきま。ここから背景のティールが覗く */
-	--w-gap: 8px;
 	/* デスクトップのグリッドの 1 行分。窓の高さは常にこの倍数になる */
 	--w-row: 8px;
 
@@ -208,16 +208,45 @@ img {
 	}
 }
 
-/* 記事ページなど「1 枚だけ」のレイアウト */
+/*
+ * 記事ページなど「1 枚だけ」のレイアウト。
+ * 窓は画面の上下左右の端まで広がる（外周の余白なし）。中身が短いページでも
+ * 縦は画面下端まで届かせたいので、コンテナごと最低でもビューポートの高さにする。
+ */
 .desktop-single {
+	display: flex;
 	min-width: 0;
-	padding: var(--w-gap);
+	min-height: calc(100dvh - var(--w-taskbar-h));
 }
 
-/* 窓は画面いっぱいでも、本文は読みやすい幅で止める */
+.win-page {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+/* 中身が短くてもステータスバーが窓の下端に落ちるように */
+.win-page > .win-body {
+	flex: 1 1 auto;
+	/* 画面幅いっぱいの窓なので、左右の余白は画面が広いほど大きく取る */
+	padding: clamp(12px, 2.4vw, 32px);
+}
+
 .win-content {
-	max-width: 900px;
-	margin: 0 auto;
+	padding: 4px 0;
+}
+
+/* 記事本文など、行が長くなりすぎると読みにくいものは幅を止めて中央寄せ */
+.win-content-narrow {
+	max-width: 76ch;
+	margin-inline: auto;
+}
+
+/*
+ * 一覧行は名前と右端のメタ情報が離れすぎると目で追えなくなるので、
+ * 画面いっぱいの窓の中でも幅を止める。
+ */
+.win-content > .listview {
+	max-width: 1000px;
 }
 
 /* ------------------------------------------------------------ ウィンドウ */
@@ -226,7 +255,7 @@ img {
 	display: flex;
 	flex-direction: column;
 	min-width: 0;
-	/* タスクバーから復帰したときにバーの下へ潜り込まないように */
+	/* アンカーで飛んだときに上部バーの下へ潜り込まないように */
 	scroll-margin-top: var(--w-taskbar-h);
 	padding: 3px;
 	background: var(--w-face);
@@ -237,7 +266,7 @@ img {
 		inset 2px 2px 0 0 var(--w-face-light);
 }
 
-/* 最小化されたウィンドウはタスクバーのボタンだけが残る */
+/* ✕ で閉じた窓。スタートメニューの「閉じたウィンドウを開き直す」で戻る */
 .win[hidden] {
 	display: none;
 }
@@ -323,117 +352,6 @@ img {
 	outline-offset: -4px;
 }
 
-/* 「_」「□」「×」は文字だと位置が揃わないので擬似要素で描く */
-.win-ctl-min::before {
-	content: "";
-	width: 6px;
-	height: 2px;
-	margin-top: 5px;
-	background: currentColor;
-}
-
-.win-ctl-max::before {
-	content: "";
-	width: 8px;
-	height: 7px;
-	border: 1px solid currentColor;
-	border-top-width: 2px;
-}
-
-/* ------------------------------------------------------------ メニューバー */
-
-.win-menubar {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 1px;
-	padding: 2px 1px;
-	background: var(--w-face);
-}
-
-.win-menubar > a,
-.win-menubar > span {
-	padding: 1px 6px;
-	font-size: 12px;
-	color: var(--w-text);
-	text-decoration: none;
-	white-space: nowrap;
-}
-
-.win-menubar > a:hover,
-.win-menubar > a:focus-visible {
-	background: var(--w-select);
-	color: var(--w-select-text);
-	outline: none;
-}
-
-.win-menubar > a[aria-current="page"] {
-	background: var(--w-select);
-	color: var(--w-select-text);
-}
-
-/* メニュー項目のアクセスキー表記 「ファイル(F)」の (F) を小さく */
-.win-menubar .key {
-	text-decoration: underline;
-}
-
-/* -------------------------------------------------------------- ツールバー */
-
-.win-toolbar {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 4px;
-	padding: 3px 2px;
-	background: var(--w-face);
-}
-
-.win-toolbar-sep {
-	width: 2px;
-	align-self: stretch;
-	margin: 0 2px;
-	box-shadow:
-		inset 1px 0 0 0 var(--w-shadow),
-		inset -1px 0 0 0 var(--w-white);
-}
-
-/* アドレスバー */
-.win-address {
-	display: flex;
-	flex: 1 1 220px;
-	align-items: center;
-	gap: 4px;
-	min-width: 0;
-}
-
-.win-address-label {
-	flex: none;
-	font-size: 12px;
-}
-
-.win-address-field {
-	display: flex;
-	flex: 1 1 auto;
-	align-items: center;
-	gap: 4px;
-	min-width: 0;
-	height: 22px;
-	padding: 0 4px;
-	background: var(--w-white);
-	box-shadow:
-		inset -1px -1px 0 0 var(--w-white),
-		inset 1px 1px 0 0 var(--w-shadow),
-		inset -2px -2px 0 0 var(--w-face-light),
-		inset 2px 2px 0 0 var(--w-dark);
-}
-
-.win-address-field span {
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-	font-size: 12px;
-}
-
 /* -------------------------------------------------------------- ボタン */
 
 .btn {
@@ -468,17 +386,6 @@ img {
 .btn:focus-visible {
 	outline: 1px dotted var(--w-dark);
 	outline-offset: -4px;
-}
-
-.btn-icon {
-	min-width: 0;
-	width: 23px;
-	height: 22px;
-	padding: 0;
-}
-
-.btn-icon:active {
-	padding: 1px 0 0 1px;
 }
 
 /* ------------------------------------------------------ フォームコントロール */
@@ -540,17 +447,12 @@ input[type="button"]:active {
 
 /* ウィンドウ枠のボタンは上のルールに上書きされないよう、専用の指定を優先する */
 button.win-ctl,
-button.taskbar-start,
-button.taskbar-item {
+button.taskbar-start {
 	padding: 0;
 }
 
 button.taskbar-start {
 	padding: 0 6px 0 3px;
-}
-
-button.taskbar-item {
-	padding: 0 6px;
 }
 
 /* -------------------------------------------------------- クライアント領域 */
@@ -1250,25 +1152,37 @@ button.taskbar-item {
 
 /* ------------------------------------------------------------ 記事カード */
 
+/*
+ * 画像を上に載せた縦型カードを、画面の広さに応じて 1 → 2 → 3 列に並べる。
+ * 列数は増やしすぎず、1 枚 1 枚を大きく見せる。
+ */
 .post-grid {
 	display: grid;
-	gap: 10px;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 16px;
 	margin: 0;
 	padding: 0;
 	list-style: none;
-	grid-template-columns: 1fr;
 }
 
-@media (min-width: 760px) {
+@media (min-width: 720px) {
 	.post-grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 20px;
+	}
+}
+
+@media (min-width: 1180px) {
+	.post-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 24px;
 	}
 }
 
 .post-card {
 	display: flex;
-	gap: 10px;
-	padding: 8px;
+	flex-direction: column;
+	padding: 10px;
 	background: var(--w-face);
 	box-shadow:
 		inset -1px -1px 0 0 var(--w-dark),
@@ -1278,11 +1192,11 @@ button.taskbar-item {
 }
 
 .post-card-media {
-	flex: none;
 	display: grid;
 	place-items: center;
-	width: 92px;
-	height: 92px;
+	/* 高さは幅なり。カードの列幅が変わっても比率は保つ */
+	aspect-ratio: 16 / 9;
+	margin-bottom: 10px;
 	overflow: hidden;
 	background: var(--w-white);
 	box-shadow:
@@ -1290,6 +1204,11 @@ button.taskbar-item {
 		inset 1px 1px 0 0 var(--w-shadow),
 		inset -2px -2px 0 0 var(--w-face-light),
 		inset 2px 2px 0 0 var(--w-dark);
+}
+
+/* アイキャッチが無い記事。空の白い箱が主役に見えないよう浅く取る */
+.post-card-media-empty {
+	aspect-ratio: 4 / 1;
 }
 
 .post-card-media img {
@@ -1303,14 +1222,16 @@ button.taskbar-item {
 }
 
 .post-card-body {
+	display: flex;
 	flex: 1 1 auto;
+	flex-direction: column;
 	min-width: 0;
 }
 
 .post-card-title {
-	margin: 0 0 4px;
-	font-size: 14px;
-	line-height: 1.4;
+	margin: 0 0 6px;
+	font-size: 16px;
+	line-height: 1.45;
 }
 
 .post-card-title a {
@@ -1318,9 +1239,9 @@ button.taskbar-item {
 }
 
 .post-card-excerpt {
-	margin: 0 0 6px;
-	font-size: 12px;
-	line-height: 1.6;
+	margin: 0 0 10px;
+	font-size: 13px;
+	line-height: 1.7;
 	color: #333;
 	/* 3 行でクランプ。カードの高さを揃えるため */
 	display: -webkit-box;
@@ -1330,11 +1251,16 @@ button.taskbar-item {
 	overflow: hidden;
 }
 
+/* 日付とタグはカードの下端に揃える。抜粋の長さが違っても足並みが乱れない */
 .post-card-meta {
-	margin: 0 0 6px;
-	font-size: 11px;
+	margin: auto 0 6px;
+	font-size: 12px;
 	color: #444;
 	font-variant-numeric: tabular-nums;
+}
+
+.post-card-meta + .taglist {
+	margin-top: 0;
 }
 
 /* -------------------------------------------------------------- タグ */
@@ -1595,11 +1521,14 @@ a:focus-visible {
 	image-rendering: pixelated;
 }
 
-/* ------------------------------------------------------------- タスクバー */
+/* ------------------------------------------------------------- 上部バー */
 
 /*
  * 画面の「上」に固定している。OS のタスクバーは下だが、ブログとして読むときは
  * ナビゲーションが上にあるほうが自然なのでこの位置にしている。
+ *
+ * 並ぶのは開いている窓ではなくサイトのセクション（ホーム / 記事一覧 / …）で、
+ * 押すとそのページへ移動する。現在地のボタンだけが押し込まれた状態になる。
  */
 .taskbar {
 	position: fixed;
@@ -1655,7 +1584,7 @@ a:focus-visible {
 }
 
 /*
- * 窓の数だけボタンが並ぶ。狭い画面では潰しきらずに横スクロールへ逃がす。
+ * セクションの数だけボタンが並ぶ。狭い画面では潰しきらずに横スクロールへ逃がす。
  * バーの高さが 22px しかないのでスクロールバー自体は隠す。
  */
 .taskbar-items {
@@ -1673,17 +1602,18 @@ a:focus-visible {
 }
 
 .taskbar-item {
-	flex: 0 1 160px;
+	flex: 0 1 auto;
 	display: flex;
 	align-items: center;
 	gap: 4px;
-	min-width: 92px;
 	height: 22px;
-	padding: 0 6px;
+	padding: 0 10px;
 	border: 0;
 	font: 12px/1 var(--w-font-ui);
 	color: var(--w-text);
+	text-decoration: none;
 	text-align: left;
+	white-space: nowrap;
 	background: var(--w-face);
 	box-shadow:
 		inset -1px -1px 0 0 var(--w-dark),
@@ -1691,6 +1621,22 @@ a:focus-visible {
 		inset -2px -2px 0 0 var(--w-shadow),
 		inset 2px 2px 0 0 var(--w-face-light);
 	cursor: pointer;
+}
+
+.taskbar-item:visited {
+	color: var(--w-text);
+}
+
+.taskbar-item:active {
+	box-shadow:
+		inset 1px 1px 0 0 var(--w-shadow),
+		inset -1px -1px 0 0 var(--w-white),
+		inset 2px 2px 0 0 var(--w-dark);
+}
+
+.taskbar-item:focus-visible {
+	outline: 1px dotted var(--w-dark);
+	outline-offset: -4px;
 }
 
 .taskbar-item span {
@@ -1706,7 +1652,7 @@ a:focus-visible {
 	height: 14px;
 }
 
-/* 表示中のウィンドウ = 押し込まれた状態 */
+/* 現在地 = 押し込まれた状態 */
 .taskbar-item.is-active {
 	font-weight: 700;
 	background: var(--w-face);
@@ -1754,6 +1700,9 @@ a:focus-visible {
 	}
 	.taskbar-start span {
 		display: none;
+	}
+	.taskbar-item {
+		padding: 0 6px;
 	}
 }
 

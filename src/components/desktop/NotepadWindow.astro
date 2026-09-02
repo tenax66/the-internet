@@ -29,13 +29,6 @@ const dateFormat = new Intl.DateTimeFormat("ja-JP", {
 	col={col}
 	row={row}
 >
-	<div class="win-menubar" slot="menubar">
-		<span>ファイル(<span class="key">F</span>)</span>
-		<span>編集(<span class="key">E</span>)</span>
-		<span>検索(<span class="key">S</span>)</span>
-		<span>ヘルプ(<span class="key">H</span>)</span>
-	</div>
-
 	<div class="notepad">
 		{
 			entries.length === 0 ? (

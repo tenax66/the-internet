@@ -31,12 +31,6 @@ const { tags, col = 1, row = 30 } = Astro.props;
 	col={col}
 	row={row}
 >
-	<div class="win-menubar" slot="menubar">
-		<span>ファイル(<span class="key">F</span>)</span>
-		<span>編集(<span class="key">E</span>)</span>
-		<span>ヘルプ(<span class="key">H</span>)</span>
-	</div>
-
 	{
 		tags.length === 0 ? (
 			<p class="listview-empty">タグがまだありません。</p>
@@ -52,9 +46,4 @@ const { tags, col = 1, row = 30 } = Astro.props;
 			</div>
 		)
 	}
-
-	<Fragment slot="status">
-		<span>タグを選ぶと、そのタグの記事だけを表示します</span>
-		<span>{tags.length} 個</span>
-	</Fragment>
 </Window>

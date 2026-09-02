@@ -3,33 +3,10 @@
  * 16x16 のドット絵アイコン。Win95 のシステムアイコン風。
  * viewBox は 16x16 固定で、大きさは CSS（width/height）側で決める。
  */
+import type { IconName } from "../utils/icons";
+
 interface Props {
-	name:
-		| "document"
-		| "paint"
-		| "browser"
-		| "folder"
-		| "folder-open"
-		| "computer"
-		| "search"
-		| "home"
-		| "back"
-		| "forward"
-		| "stop"
-		| "reload"
-		| "print"
-		| "tag"
-		| "star"
-		| "settings"
-		| "notepad"
-		| "media"
-		| "world"
-		| "warning"
-		| "network"
-		| "chip"
-		| "mail"
-		| "dos"
-		| "cards";
+	name: IconName;
 	size?: number;
 	class?: string;
 	title?: string;

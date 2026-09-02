@@ -1,34 +1,35 @@
 ---
 import LiveSearch from "emdash/ui/search";
 import Icon from "./Icon.astro";
+import type { IconName } from "../utils/icons";
 
-interface MenuItem {
+interface NavItem {
 	label: string;
 	url: string;
+	icon: IconName;
 	target?: string | null;
 }
 
 interface Props {
-	/** emdash の primary メニュー */
-	items?: MenuItem[];
-	/** 現在のパス。メニューの現在地表示に使う */
+	/** 上部バーに並べるナビ。Base.astro が組み立てて渡す */
+	navItems?: NavItem[];
+	/** 現在のパス。現在地のボタンを押し込み表示にするのに使う */
 	currentPath?: string;
 	/** スタートメニュー左端の縦帯に出す文字 */
 	railTitle?: string;
+	/** トップページかどうか。ウィンドウ操作の項目はトップでだけ出す */
+	showWindowActions?: boolean;
 }
 
-const { items = [], currentPath = "/", railTitle = "MENU" } = Astro.props;
+const {
+	navItems = [],
+	currentPath = "/",
+	railTitle = "MENU",
+	showWindowActions = false,
+} = Astro.props;
 
-/** スタートメニューに必ず出す項目。primary メニューと重複したら省く */
-const builtins: { label: string; url: string; icon: "folder" | "document" }[] = [
-	{ label: "記事一覧", url: "/posts", icon: "folder" },
-	{ label: "ページ一覧", url: "/pages", icon: "document" },
-];
-
-const menuUrls = new Set(items.map((i) => i.url.replace(/\/$/, "") || "/"));
-const extras = builtins.filter(
-	(b) => !menuUrls.has(b.url.replace(/\/$/, "") || "/"),
-);
+const normalize = (url: string) => url.replace(/\/$/, "") || "/";
+const isCurrent = (url: string) => normalize(url) === currentPath;
 ---
 
 <nav class="startmenu" id="startmenu" hidden aria-label="スタートメニュー">
@@ -38,29 +39,12 @@ const extras = builtins.filter(
 
 	<ul class="startmenu-list">
 		{
-			items.map((item) => (
+			navItems.map((item) => (
 				<li>
 					<a
 						href={item.url}
 						target={item.target ?? undefined}
-						aria-current={
-							(item.url.replace(/\/$/, "") || "/") === currentPath
-								? "page"
-								: undefined
-						}
-					>
-						<Icon name={item.url === "/" ? "home" : "document"} size={20} />
-						{item.label}
-					</a>
-				</li>
-			))
-		}
-		{
-			extras.map((item) => (
-				<li>
-					<a
-						href={item.url}
-						aria-current={item.url === currentPath ? "page" : undefined}
+						aria-current={isCurrent(item.url) ? "page" : undefined}
 					>
 						<Icon name={item.icon} size={20} />
 						{item.label}
@@ -69,14 +53,19 @@ const extras = builtins.filter(
 			))
 		}
 
-		<li class="startmenu-divider" role="separator"></li>
-
-		<li>
-			<a href="#" data-window-action="restore-all">
-				<Icon name="computer" size={20} />
-				すべてのウィンドウを開く
-			</a>
-		</li>
+		{
+			showWindowActions && (
+				<>
+					<li class="startmenu-divider" role="separator" />
+					<li>
+						<a href="#" data-window-action="restore-all">
+							<Icon name="computer" size={20} />
+							閉じたウィンドウを開き直す
+						</a>
+					</li>
+				</>
+			)
+		}
 
 		<li class="startmenu-divider" role="separator"></li>
 
@@ -86,6 +75,11 @@ const extras = builtins.filter(
 	</ul>
 </nav>
 
+{/*
+ * 画面上部のバー。見た目は Win95 のタスクバーだが、並ぶのは開いている窓では
+ * なくサイトのセクションで、押すとそのページへ移動する。現在地のボタンだけが
+ * 押し込まれた状態になる。
+ */}
 <div class="taskbar">
 	<button
 		type="button"
@@ -105,7 +99,22 @@ const extras = builtins.filter(
 
 	<div class="taskbar-sep" aria-hidden="true"></div>
 
-	<div class="taskbar-items" id="taskbar-items" aria-label="ウィンドウ一覧" role="group"></div>
+	<nav class="taskbar-items" aria-label="サイト内ナビゲーション">
+		{
+			navItems.map((item) => (
+				<a
+					class:list={["taskbar-item", isCurrent(item.url) && "is-active"]}
+					href={item.url}
+					target={item.target ?? undefined}
+					title={item.label}
+					aria-current={isCurrent(item.url) ? "page" : undefined}
+				>
+					<Icon name={item.icon} size={14} />
+					<span>{item.label}</span>
+				</a>
+			))
+		}
+	</nav>
 
 	<div class="taskbar-tray">
 		<span id="taskbar-clock" aria-label="現在時刻">--:--</span>

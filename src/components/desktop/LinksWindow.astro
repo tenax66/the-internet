@@ -31,12 +31,6 @@ const { links, col = 1, row = 24 } = Astro.props;
 	col={col}
 	row={row}
 >
-	<div class="win-menubar" slot="menubar">
-		<span>ファイル(<span class="key">F</span>)</span>
-		<span>編集(<span class="key">E</span>)</span>
-		<span>お気に入り(<span class="key">A</span>)</span>
-	</div>
-
 	{
 		links.length === 0 ? (
 			<p class="listview-empty">リンクがまだありません。</p>
@@ -57,9 +51,4 @@ const { links, col = 1, row = 24 } = Astro.props;
 			</div>
 		)
 	}
-
-	<Fragment slot="status">
-		<span>外部サイトへ移動します</span>
-		<span>{links.length} 個</span>
-	</Fragment>
 </Window>
