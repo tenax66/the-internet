@@ -5,7 +5,10 @@ import { createPublicPageContext } from "emdash/page";
 import Taskbar from "../components/Taskbar.astro";
 import Window from "../components/Window.astro";
 import Icon from "../components/Icon.astro";
-import { resolveStarterSiteIdentity } from "../utils/site-identity";
+import {
+	BROWSER_NAME,
+	resolveStarterSiteIdentity,
+} from "../utils/site-identity";
 import "../styles/win98.css";
 
 interface Props {
@@ -21,12 +24,12 @@ interface Props {
 	 * window  = 中身を 1 枚のウィンドウで包む（記事・一覧など）
 	 */
 	chrome?: "desktop" | "window";
-	/** chrome="window" のときタイトルバーに出す文字。既定は `title - Web Browser` */
+	/** chrome="window" のときタイトルバーに出す文字。既定は `title - ${BROWSER_NAME}` */
 	windowTitle?: string;
 	windowIcon?:
 		| "document"
 		| "paint"
-		| "ie"
+		| "browser"
 		| "folder"
 		| "folder-open"
 		| "computer"
@@ -51,7 +54,7 @@ const {
 	content,
 	chrome = "window",
 	windowTitle,
-	windowIcon = "ie",
+	windowIcon = "browser",
 	status = "ページが表示されました",
 } = Astro.props;
 
@@ -94,7 +97,7 @@ const pageCtx = createPublicPageContext({
 	siteName: siteTitle,
 });
 
-const barTitle = windowTitle ?? `${title} - Web Browser`;
+const barTitle = windowTitle ?? `${title} - ${BROWSER_NAME}`;
 const addressUrl = `${Astro.url.origin}${Astro.url.pathname}`;
 ---
 
@@ -167,7 +170,7 @@ const addressUrl = `${Astro.url.origin}${Astro.url.pathname}`;
 								<div class="win-address">
 									<span class="win-address-label">アドレス</span>
 									<div class="win-address-field">
-										<Icon name="ie" />
+										<Icon name="browser" />
 										<span>{addressUrl}</span>
 									</div>
 								</div>
@@ -187,7 +190,11 @@ const addressUrl = `${Astro.url.origin}${Astro.url.pathname}`;
 			}
 		</div>
 
-		<Taskbar items={menuItems} currentPath={currentPath} />
+		<Taskbar
+			items={menuItems}
+			currentPath={currentPath}
+			railTitle={siteTitle}
+		/>
 
 		<script>
 			import "../scripts/desktop.ts";

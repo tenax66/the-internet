@@ -131,12 +131,15 @@ img {
  *           埋める。幅も高さもバラバラなまま隙間なく詰まるので、masonry 的な
  *           不揃いさが出る。窓の高さが固定になるぶん、あふれた中身は
  *           クライアント領域側でスクロールさせる（本物の窓と同じ挙動）。
+ *
+ * 窓どうしの隙間も外周の余白も 0。枠（outset のヘリ）だけで境目が読めるので、
+ * 画面の端から端までタイル状にびっしり敷き詰まった見た目になる。
  */
 .desktop-grid {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr);
-	gap: var(--w-gap);
-	padding: var(--w-gap);
+	gap: 0;
+	padding: 0;
 	align-content: start;
 }
 
@@ -145,19 +148,12 @@ img {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 		grid-auto-rows: var(--w-row);
 		grid-auto-flow: row dense;
-		/*
-		 * row-gap は「またいだ行の数だけ」高さに足されてしまい、span から
-		 * 実寸を読めなくなる（span 34 が 34*8 ではなく 470px になる）。
-		 * 縦のすきまは窓側の margin-bottom で作り、span N = N*--w-row に保つ。
-		 */
-		row-gap: 0;
 	}
 
 	.desktop-grid > .win {
 		/* span がカラム数を超えたぶんはブラウザが自動で切り詰めてくれる */
 		grid-column: span var(--win-col, 1);
 		grid-row: span var(--win-row, 30);
-		margin-bottom: var(--w-gap);
 	}
 
 	/* 割り当てられたマスいっぱいに広がる窓（一覧・文書系）。あふれた中身は窓の中でスクロール */
@@ -872,35 +868,6 @@ button.taskbar-item {
 		inset 2px 2px 0 0 var(--w-face-light);
 }
 
-/* ------------------------------------------------- システムのプロパティ */
-
-.sysprop {
-	display: flex;
-	gap: 10px;
-}
-
-.sysprop-icon {
-	flex: none;
-}
-
-.sysprop-list {
-	display: grid;
-	grid-template-columns: auto minmax(0, 1fr);
-	gap: 2px 8px;
-	margin: 0;
-	font-size: 11px;
-	line-height: 1.5;
-}
-
-.sysprop-list dt {
-	white-space: nowrap;
-}
-
-.sysprop-list dd {
-	margin: 0;
-	overflow-wrap: anywhere;
-}
-
 /* ---------------------------------------------------------------- メモ帳 */
 
 .notepad {
@@ -1029,48 +996,157 @@ button.taskbar-item {
 	font-variant-numeric: tabular-nums;
 }
 
-/* ------------------------------------------------------------ カウンター */
+/* ------------------------------------------------------ コマンド プロンプト */
 
-.counter {
+.dos {
+	padding: 6px 8px;
+	background: #000;
+}
+
+.dos-screen {
+	/* dir の桁は等幅前提。狭いときは窓の中で横スクロールさせる */
+	overflow-x: auto;
+	font-family: var(--w-font-mono);
+	font-size: 11px;
+	line-height: 1.45;
+	color: #c0c0c0;
+}
+
+.dos-line {
+	margin: 0;
+	white-space: pre;
+}
+
+/* DOS のカーソル。文字の代わりに四角を点滅させる */
+.dos-cursor {
+	display: inline-block;
+	width: 7px;
+	height: 11px;
+	margin-left: 1px;
+	vertical-align: -1px;
+	background: #c0c0c0;
+	animation: dos-blink 1.06s steps(1, end) infinite;
+}
+
+@keyframes dos-blink {
+	0%,
+	50% {
+		opacity: 1;
+	}
+	50.01%,
+	100% {
+		opacity: 0;
+	}
+}
+
+/* ------------------------------------------------------------ ソリティア */
+
+/*
+ * 盤面はマスいっぱいに伸ばす。中身なりの高さ（win-fit）で止めると、
+ * span した行の余りぶんだけ下に隙間が残り、次に来る プロンプト窓との間が
+ * 空いてしまうため。余った高さは緑の盤面が吸うので継ぎ目は見えない。
+ */
+.area-solitaire .win-body {
 	display: flex;
 	flex-direction: column;
-	align-items: center;
-	gap: 6px;
-	text-align: center;
 }
 
-/* 工事中のトラ縞 */
-.counter-stripe {
-	width: 100%;
-	height: 10px;
-	background: repeating-linear-gradient(
-		-45deg,
-		#000 0 6px,
-		#ffd75e 6px 12px
-	);
-}
+.solitaire {
+	--sol-w: 30px;
+	--sol-h: 42px;
 
-.counter-label {
-	margin: 0;
-	font-size: 11px;
-}
-
-.counter-digits {
+	flex: 1 1 auto;
 	display: flex;
-	gap: 2px;
-	margin: 0;
+	flex-direction: column;
+	gap: 10px;
+	padding: 8px;
+	overflow-x: auto;
+	background: #008000;
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-white),
+		inset 1px 1px 0 0 var(--w-shadow),
+		inset -2px -2px 0 0 var(--w-face-light),
+		inset 2px 2px 0 0 var(--w-dark);
 }
 
-.counter-digit {
-	display: grid;
-	place-items: center;
-	width: 16px;
-	padding: 2px 0;
-	background: #000;
-	color: #3ba03b;
+/* 山札・めくった札（左）と組札（右） */
+.sol-top {
+	display: flex;
+	gap: 6px;
+}
+
+.sol-foundations {
+	display: flex;
+	gap: 6px;
+	margin-left: auto;
+}
+
+/*
+ * ランクとスートは左上に横並びで置く。重ねたときに覗くのは上端の
+ * 数 px だけなので、縦積みにすると下の札のスートが隠れてしまう。
+ */
+.sol-card {
+	display: flex;
+	align-items: baseline;
+	gap: 1px;
+	flex: none;
+	width: var(--sol-w);
+	height: var(--sol-h);
+	padding: 2px 0 0 2px;
+	background: var(--w-white);
+	border: 1px solid var(--w-dark);
+	border-radius: 2px;
 	font-family: var(--w-font-mono);
-	font-size: 15px;
+	font-size: 11px;
 	font-weight: 700;
+	line-height: 1.1;
+	color: var(--w-dark);
+}
+
+.sol-card.is-red {
+	color: #c81e1e;
+}
+
+.sol-suit {
+	font-size: 12px;
+}
+
+/* 裏面。青地に細かい格子 */
+.sol-back {
+	background: repeating-linear-gradient(45deg, #1e64c8 0 3px, #6ea8f0 3px 6px);
+	box-shadow: inset 0 0 0 1px var(--w-white);
+}
+
+/* 組札の空きスロット */
+.sol-slot {
+	flex: none;
+	width: var(--sol-w);
+	height: var(--sol-h);
+	border: 1px solid rgba(0, 0, 0, 0.4);
+	border-radius: 2px;
+}
+
+.sol-tableau {
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+}
+
+/*
+ * 列の高さは中身から決まらない（カードが絶対配置なので）。
+ * Astro 側が計算した --h をそのまま高さにする。
+ */
+.sol-col {
+	position: relative;
+	flex: none;
+	width: var(--sol-w);
+	height: var(--h);
+}
+
+.sol-col > .sol-card {
+	position: absolute;
+	top: var(--y);
+	left: 0;
 }
 
 /* -------------------------------------------- カスケードするダイアログ */

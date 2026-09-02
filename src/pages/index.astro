@@ -13,13 +13,16 @@ import Icon from "../components/Icon.astro";
 import PixelArt from "../components/PixelArt.astro";
 import MyComputerWindow from "../components/desktop/MyComputerWindow.astro";
 import ControlPanelWindow from "../components/desktop/ControlPanelWindow.astro";
-import SystemPropertiesWindow from "../components/desktop/SystemPropertiesWindow.astro";
 import NotepadWindow from "../components/desktop/NotepadWindow.astro";
 import LinksWindow from "../components/desktop/LinksWindow.astro";
 import MediaPlayerWindow from "../components/desktop/MediaPlayerWindow.astro";
-import CounterWindow from "../components/desktop/CounterWindow.astro";
+import CommandPromptWindow from "../components/desktop/CommandPromptWindow.astro";
+import SolitaireWindow from "../components/desktop/SolitaireWindow.astro";
 import NoLongerExistsWindow from "../components/desktop/NoLongerExistsWindow.astro";
-import { resolveStarterSiteIdentity } from "../utils/site-identity";
+import {
+	BROWSER_NAME,
+	resolveStarterSiteIdentity,
+} from "../utils/site-identity";
 
 const { entries: posts, cacheHint } = await getEmDashCollection("posts", {
 	orderBy: { published_at: "desc" },
@@ -58,8 +61,6 @@ const changelog = posts.slice(0, 12).map((p) => ({
 	href: `/posts/${p.id}`,
 	date: p.data.publishedAt ?? null,
 }));
-
-const lastUpdated = posts.find((p) => p.data.publishedAt)?.data.publishedAt;
 
 /** 「お気に入り」窓に出す外部リンク。ここを書き換えれば中身が変わる */
 const favorites = [
@@ -123,7 +124,7 @@ const notepadRow = clampRow(12 + changelog.length * 3, 16, 36);
 					title="このサイトについて"
 					aria-label="このサイトについて"
 				>
-					<Icon name="ie" />
+					<Icon name="browser" />
 				</a>
 			</div>
 
@@ -198,8 +199,8 @@ const notepadRow = clampRow(12 + changelog.length * 3, 16, 36);
 		<Window
 			id="about"
 			class="area-about"
-			icon="ie"
-			title={`${about?.data.title ?? "このサイトについて"} - Web Browser`}
+			icon="browser"
+			title={`${about?.data.title ?? "このサイトについて"} - ${BROWSER_NAME}`}
 			col={2}
 			row={30}
 		>
@@ -213,7 +214,7 @@ const notepadRow = clampRow(12 + changelog.length * 3, 16, 36);
 				<div class="win-address">
 					<span class="win-address-label">アドレス</span>
 					<div class="win-address-field">
-						<Icon name="ie" />
+						<Icon name="browser" />
 						<span>{`${Astro.url.origin}/about`}</span>
 					</div>
 				</div>
@@ -293,17 +294,8 @@ const notepadRow = clampRow(12 + changelog.length * 3, 16, 36);
 		{/* -------------------------------------------------- 更新履歴 */}
 		<NotepadWindow entries={changelog} col={1} row={notepadRow} />
 
-		{/* ------------------------------------ システムのプロパティ */}
-		<SystemPropertiesWindow
-			siteTitle={siteTitle}
-			siteTagline={siteTagline}
-			postCount={posts.length}
-			pageCount={pages.length}
-			tagCount={tags.length}
-			lastUpdated={lastUpdated}
-			col={1}
-			row={36}
-		/>
+		{/* -------------------------------------------------- ソリティア */}
+		<SolitaireWindow col={1} row={30} />
 
 		{/* -------------------------------------------------- お気に入り */}
 		<LinksWindow links={favorites} col={1} row={22} />
@@ -311,6 +303,6 @@ const notepadRow = clampRow(12 + changelog.length * 3, 16, 36);
 		{/* ------------------------------------------------- 飾りの窓たち */}
 		<NoLongerExistsWindow col={1} row={24} />
 		<MediaPlayerWindow col={1} row={24} />
-		<CounterWindow postCount={posts.length} col={1} row={20} />
+		<CommandPromptWindow col={1} row={32} />
 	</div>
 </Base>

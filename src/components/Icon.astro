@@ -7,7 +7,7 @@ interface Props {
 	name:
 		| "document"
 		| "paint"
-		| "ie"
+		| "browser"
 		| "folder"
 		| "folder-open"
 		| "computer"
@@ -27,7 +27,9 @@ interface Props {
 		| "warning"
 		| "network"
 		| "chip"
-		| "mail";
+		| "mail"
+		| "dos"
+		| "cards";
 	size?: number;
 	class?: string;
 	title?: string;
@@ -69,7 +71,7 @@ const { name, size = 16, class: className, title } = Astro.props;
 		)
 	}
 	{
-		name === "ie" && (
+		name === "browser" && (
 			<g>
 				<circle cx="8" cy="8" r="6" fill="#1084d0" stroke="#000" />
 				<path d="M2 8h12M8 2c3 3 3 9 0 12M8 2c-3 3-3 9 0 12" stroke="#fff" fill="none" />
@@ -236,6 +238,26 @@ const { name, size = 16, class: className, title } = Astro.props;
 					d="M5 1v2M8 1v2M11 1v2M5 13v2M8 13v2M11 13v2M1 5h2M1 8h2M1 11h2M13 5h2M13 8h2M13 11h2"
 					stroke="#808080"
 				/>
+			</g>
+		)
+	}
+	{
+		name === "dos" && (
+			<g>
+				<rect x="1" y="2" width="14" height="12" fill="#000" stroke="#000" />
+				<rect x="1" y="2" width="14" height="2" fill="#c0c0c0" />
+				<path d="M3 7l2 2-2 2" fill="none" stroke="#fff" />
+				<rect x="6" y="10" width="4" height="1" fill="#fff" />
+			</g>
+		)
+	}
+	{
+		name === "cards" && (
+			<g>
+				<rect x="1" y="4" width="8" height="11" fill="#1e64c8" stroke="#000" />
+				<path d="M2 5h6v9H2z" fill="#6ea8f0" />
+				<rect x="7" y="1" width="8" height="11" fill="#fff" stroke="#000" />
+				<path d="M11 4l2 2-2 2-2-2z" fill="#c81e1e" />
 			</g>
 		)
 	}

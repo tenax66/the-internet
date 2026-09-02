@@ -13,9 +13,11 @@ interface Props {
 	items?: MenuItem[];
 	/** 現在のパス。メニューの現在地表示に使う */
 	currentPath?: string;
+	/** スタートメニュー左端の縦帯に出す文字 */
+	railTitle?: string;
 }
 
-const { items = [], currentPath = "/" } = Astro.props;
+const { items = [], currentPath = "/", railTitle = "MENU" } = Astro.props;
 
 /** スタートメニューに必ず出す項目。primary メニューと重複したら省く */
 const builtins: { label: string; url: string; icon: "folder" | "document" }[] = [
@@ -31,7 +33,7 @@ const extras = builtins.filter(
 
 <nav class="startmenu" id="startmenu" hidden aria-label="スタートメニュー">
 	<div class="startmenu-rail" aria-hidden="true">
-		<span>MENU</span>
+		<span>{railTitle}</span>
 	</div>
 
 	<ul class="startmenu-list">

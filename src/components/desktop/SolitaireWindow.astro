@@ -1,0 +1,138 @@
+---
+import Window from "../Window.astro";
+
+/**
+ * 「ソリティア」風の飾り窓。遊べない、途中で放置された盤面。
+ * 場札はカードごとの top を先に計算して絶対配置する。
+ * （負のマージンで積むと、伏せカードと表カードでずらし幅を変えられないため）
+ */
+
+interface Props {
+	col?: 1 | 2;
+	row?: number;
+}
+
+const { col = 1, row = 30 } = Astro.props;
+
+/** カード 1 枚ぶんの縦のずらし幅（px）。CSS の --sol-h と合わせておく */
+const DOWN_STEP = 6;
+const UP_STEP = 14;
+const CARD_H = 42;
+
+/** 場札。down = 伏せてある枚数、up = 表向きのカード（上から順） */
+const piles = [
+	{ down: 0, up: ["K♠"] },
+	{ down: 1, up: ["Q♥", "J♠"] },
+	{ down: 2, up: ["9♦"] },
+	{ down: 3, up: ["10♣", "9♥"] },
+	{ down: 4, up: ["7♦"] },
+	{ down: 3, up: ["J♥", "10♠"] },
+	{ down: 5, up: ["4♣"] },
+];
+
+/** 組札。♠ だけ A が上がっていて、あとは空きスロット */
+const foundations = ["A♠", "", "", ""];
+/** 山札からめくった 1 枚 */
+const waste = "3♥";
+
+const parse = (card: string) => ({
+	rank: card.slice(0, -1),
+	suit: card.slice(-1),
+	red: card.endsWith("♥") || card.endsWith("♦"),
+});
+
+const columns = piles.map((pile) => {
+	const cards: {
+		y: number;
+		down: boolean;
+		rank?: string;
+		suit?: string;
+		red?: boolean;
+	}[] = [];
+	let y = 0;
+
+	for (let i = 0; i < pile.down; i++) {
+		cards.push({ y, down: true });
+		y += DOWN_STEP;
+	}
+	pile.up.forEach((card, i) => {
+		cards.push({ y, down: false, ...parse(card) });
+		if (i < pile.up.length - 1) y += UP_STEP;
+	});
+
+	/** 絶対配置なので、列の高さは最後のカードのぶんまで自分で確保する */
+	return { cards, height: y + CARD_H };
+});
+
+const wasteCard = parse(waste);
+---
+
+<Window
+	id="solitaire"
+	class="area-solitaire"
+	icon="cards"
+	title="ソリティア"
+	bodyClass="win-body-face"
+	col={col}
+	row={row}
+>
+	<div class="win-menubar" slot="menubar">
+		<span>ゲーム(<span class="key">G</span>)</span>
+		<span>表示(<span class="key">V</span>)</span>
+		<span>ヘルプ(<span class="key">H</span>)</span>
+	</div>
+
+	{/* 盤面はただの飾りなので、読み上げには渡さない */}
+	<div class="solitaire" aria-hidden="true">
+		<div class="sol-top">
+			<span class="sol-card sol-back"></span>
+
+			<span class:list={["sol-card", wasteCard.red && "is-red"]}>
+				<span class="sol-rank">{wasteCard.rank}</span>
+				<span class="sol-suit">{wasteCard.suit}</span>
+			</span>
+
+			<div class="sol-foundations">
+				{
+					foundations.map((f) => {
+						if (!f) return <span class="sol-slot" />;
+						const card = parse(f);
+						return (
+							<span class:list={["sol-card", card.red && "is-red"]}>
+								<span class="sol-rank">{card.rank}</span>
+								<span class="sol-suit">{card.suit}</span>
+							</span>
+						);
+					})
+				}
+			</div>
+		</div>
+
+		<div class="sol-tableau">
+			{
+				columns.map((column) => (
+					<div class="sol-col" style={`--h:${column.height}px`}>
+						{column.cards.map((c) =>
+							c.down ? (
+								<span class="sol-card sol-back" style={`--y:${c.y}px`} />
+							) : (
+								<span
+									class:list={["sol-card", c.red && "is-red"]}
+									style={`--y:${c.y}px`}
+								>
+									<span class="sol-rank">{c.rank}</span>
+									<span class="sol-suit">{c.suit}</span>
+								</span>
+							),
+						)}
+					</div>
+				))
+			}
+		</div>
+	</div>
+
+	<Fragment slot="status">
+		<span>スコア 380</span>
+		<span>経過時間 154</span>
+	</Fragment>
+</Window>

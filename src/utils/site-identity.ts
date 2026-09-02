@@ -15,6 +15,12 @@ export interface StarterSiteIdentitySettings {
 const DEFAULT_SITE_TITLE = "My Site";
 const DEFAULT_SITE_TAGLINE = "Built with EmDash";
 
+/**
+ * ウィンドウのタイトルバーに出す架空のブラウザ名。
+ * 90 年代の雰囲気づくり用なので、実在製品の名前は使わない。
+ */
+export const BROWSER_NAME = "Web Browser";
+
 export function resolveStarterSiteIdentity(settings?: StarterSiteIdentitySettings) {
   return {
     siteTitle: settings?.title ?? DEFAULT_SITE_TITLE,

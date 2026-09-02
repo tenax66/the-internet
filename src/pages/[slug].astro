@@ -2,7 +2,10 @@
 import { getEmDashEntry, getSeoMeta, decodeSlug, getSiteSettings } from "emdash";
 import { PortableText } from "emdash/ui";
 import Base from "../layouts/Base.astro";
-import { resolveStarterSiteIdentity } from "../utils/site-identity";
+import {
+	BROWSER_NAME,
+	resolveStarterSiteIdentity,
+} from "../utils/site-identity";
 
 const slug = decodeSlug(Astro.params.slug);
 
@@ -32,8 +35,8 @@ const seo = getSeoMeta(page, {
 	description={seo.description}
 	canonical={seo.canonical}
 	content={{ collection: "pages", id: page.data.id, slug }}
-	windowTitle={`${page.data.title} - Web Browser`}
-	windowIcon="ie"
+	windowTitle={`${page.data.title} - ${BROWSER_NAME}`}
+	windowIcon="browser"
 >
 	<article class="prose">
 		<header class="entry-head">

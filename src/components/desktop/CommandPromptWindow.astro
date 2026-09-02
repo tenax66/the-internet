@@ -1,0 +1,81 @@
+---
+import Window from "../Window.astro";
+
+/**
+ * 「コマンド プロンプト」風の飾り窓。何も実行しないし、リンクも張らない。
+ * dir の出力に見せたいので、桁を揃えた文字列を先に作ってから 1 行ずつ描く。
+ */
+
+interface DosFile {
+	/** 8.3 形式のファイル名。8 文字を超えたぶんは切り詰めて表示する */
+	name: string;
+	ext: string;
+	size: number;
+	/** YY-MM-DD 表記 */
+	date: string;
+}
+
+interface Props {
+	volume?: string;
+	files?: DosFile[];
+	freeBytes?: number;
+	col?: 1 | 2;
+	row?: number;
+}
+
+const {
+	volume = "THE INTERNET",
+	files = [
+		{ name: "AUTOEXEC", ext: "BAT", size: 1024, date: "98-04-01" },
+		{ name: "HOMEPAGE", ext: "HTM", size: 4096, date: "98-04-01" },
+		{ name: "DIARY", ext: "TXT", size: 12288, date: "99-12-31" },
+		{ name: "UNDER~1", ext: "GIF", size: 2048, date: "98-04-01" },
+		{ name: "BBS", ext: "LOG", size: 131072, date: "00-01-01" },
+	],
+	freeBytes = 33538048,
+	col = 1,
+	row = 32,
+} = Astro.props;
+
+const bytes = (n: number) => n.toLocaleString("en-US");
+
+/** DIR の 1 行。等幅フォント前提で桁を揃える */
+const listing = files.map(
+	(f) =>
+		`${f.name.slice(0, 8).padEnd(8)} ${f.ext.padEnd(3)} ${bytes(f.size).padStart(9)}  ${f.date}`,
+);
+
+const total = files.reduce((sum, f) => sum + f.size, 0);
+
+/** 空行は白文字が無いと高さが潰れるので、描くときに &nbsp; に置き換える */
+const screen = [
+	"C:\\>dir *.*",
+	"",
+	` ドライブ C のボリューム ラベルは ${volume}`,
+	"",
+	...listing,
+	`        ${files.length} 個のファイル  ${bytes(total)} バイト`,
+	`        空き ${bytes(freeBytes)} バイト`,
+	"",
+];
+---
+
+<Window
+	id="prompt"
+	class="area-prompt"
+	icon="dos"
+	title="コマンド プロンプト"
+	bodyClass="win-body-flush"
+	col={col}
+	row={row}
+	fit
+>
+	<div class="dos">
+		<div class="dos-screen">
+			{screen.map((line) => <p class="dos-line">{line === "" ? "\u00a0" : line}</p>)}
+			<p class="dos-line">
+				{"C:\\>"}<span class="dos-cursor" aria-hidden="true"></span>
+			</p>
+		</div>
+	</div>
+</Window>
