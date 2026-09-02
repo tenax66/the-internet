@@ -124,7 +124,10 @@ img {
 /*
  * トップページのウィンドウ配置。
  *
- * 狭い画面: 1 カラムに縦積み。高さは中身なり。
+ * 狭い画面: CSS の段組みで 2 列。グリッドと違って窓は中身なりの高さのまま
+ *           積まれる（行ごとに高さが揃わないので、狭い列でも本文が切れて
+ *           小さな入れ子スクロールになることがない）。看板の窓だけは
+ *           column-span で段をまたいで全幅にする。
  * 広い画面: 列数 2 → 3 → 4 のグリッドに、1 行 = --w-row(8px) の細かい行を敷く。
  *           各窓は自分の col / row（Window.astro が --win-col / --win-row で渡す）
  *           のぶんだけマスを占め、grid-auto-flow:dense が残った穴を後ろの窓で
@@ -136,18 +139,39 @@ img {
  * 画面の端から端までタイル状にびっしり敷き詰まった見た目になる。
  */
 .desktop-grid {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr);
-	gap: 0;
+	columns: 2;
+	column-gap: 0;
 	padding: 0;
-	align-content: start;
+}
+
+/* 段の途中で窓が真っ二つに割れないように */
+.desktop-grid > .win {
+	break-inside: avoid;
+}
+
+/* 看板（サイト名）だけは 2 列にまたがって 1 列で見せる */
+.desktop-grid > .area-main {
+	column-span: all;
+}
+
+/* 幅が無いぶん、クライアント領域の余白は詰める */
+@media (max-width: 639px) {
+	.desktop-grid > .win > .win-body {
+		padding: 8px;
+	}
+
+	.desktop-grid > .win > .win-body-flush {
+		padding: 2px;
+	}
 }
 
 @media (min-width: 640px) {
 	.desktop-grid {
+		display: grid;
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 		grid-auto-rows: var(--w-row);
 		grid-auto-flow: row dense;
+		align-content: start;
 	}
 
 	.desktop-grid > .win {
@@ -1062,6 +1086,9 @@ button.taskbar-start {
  * 窓が広いときに左に寄って見えないよう、中央に置く。
  */
 .cascade {
+	--cascade-step: 13px;
+	--cascade-w: 204px;
+
 	position: relative;
 	width: 258px;
 	max-width: 100%;
@@ -1069,12 +1096,23 @@ button.taskbar-start {
 	margin: 0 auto;
 }
 
+/*
+ * 窓が細いとき（スマートフォンの 2 列）は、ずらし幅とダイアログの幅を詰める。
+ * ダイアログは絶対配置なので、はみ出すと窓の外まで飛び出してしまう。
+ */
+@media (max-width: 639px) {
+	.cascade {
+		--cascade-step: 8px;
+		--cascade-w: calc(100% - 4 * var(--cascade-step));
+	}
+}
+
 .cascade-dialog {
 	position: absolute;
-	top: calc(var(--i) * 13px);
-	left: calc(var(--i) * 13px);
+	top: calc(var(--i) * var(--cascade-step));
+	left: calc(var(--i) * var(--cascade-step));
 	z-index: var(--i);
-	width: 204px;
+	width: var(--cascade-w);
 	padding: 3px;
 	background: var(--w-face);
 	box-shadow:
@@ -1427,6 +1465,13 @@ a:focus-visible {
 }
 
 /* -------------------------------------------------------------- 見出し看板 */
+
+/*
+ * 看板の窓だけはタイトルバーを持たない
+ */
+.area-main > .win-titlebar {
+	display: none;
+}
 
 /* 参考画像の「インターネット / THE INTERNET」の看板 */
 .signboard {

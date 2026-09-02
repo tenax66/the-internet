@@ -52,7 +52,14 @@ function setup(): void {
 			});
 	}
 
-	setActive(windows[0] ?? null);
+	/*
+	 * 最初にアクティブにする窓。看板の窓のようにタイトルバーを持たない窓を選ぶと
+	 * どこもアクティブに見えないので、帯を出せる窓の先頭から始める。
+	 */
+	const hasTitlebar = (w: DeskWindow): boolean =>
+		!!w.el.querySelector<HTMLElement>(".win-titlebar")?.offsetParent;
+
+	setActive(windows.find(hasTitlebar) ?? windows[0] ?? null);
 
 	/* ------------------------------------------------- スタートメニュー */
 

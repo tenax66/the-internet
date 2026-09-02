@@ -89,9 +89,10 @@ const notepadRow = clampRow(9 + changelog.length * 3, 13, 33);
 	{/*
 	 * 窓が乱立するのはこのトップページだけ。下層ページは 1 枚の窓になる。
 	 *
-	 * 窓は .desktop-grid の直下に並べる。並び順 = モバイルでの縦積み順なので、
-	 * 大事なものから書く。広い画面での配置は各窓の col / row（grid の span）と
-	 * grid-auto-flow: dense に任せる。
+	 * 窓は .desktop-grid の直下に並べる。並び順 = スマートフォンでの流し込み順
+	 * （左の段を上から埋めて右の段へ）なので、大事なものから書く。広い画面での
+	 * 配置は各窓の col / row（grid の span）と grid-auto-flow: dense に任せる。
+	 * 看板（area-main）だけはどの幅でも全幅で 1 行に置く。
 	 */}
 	<div class="desktop-grid">
 		{/* ---------------------------------------------- 看板ウィンドウ */}
