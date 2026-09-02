@@ -39,6 +39,10 @@
 	/* --- 寸法 --- */
 	--w-taskbar-h: 30px;
 	--w-titlebar-h: 20px;
+	/* 窓どうし・画面端のすきま。ここから背景のティールが覗く */
+	--w-gap: 8px;
+	/* デスクトップのグリッドの 1 行分。窓の高さは常にこの倍数になる */
+	--w-row: 8px;
 
 	/* --- フォント --- */
 	--w-font-ui:
@@ -58,6 +62,8 @@
 html {
 	/* デスクトップの余白がどこまでスクロールしても teal のまま見えるように */
 	background: var(--w-desktop);
+	/* 上に固定したタスクバーの下にアンカー先が潜り込まないように */
+	scroll-padding-top: var(--w-taskbar-h);
 }
 
 body {
@@ -67,8 +73,8 @@ body {
 	line-height: 1.5;
 	color: var(--w-text);
 	background: var(--w-desktop);
-	/* タスクバーに隠れないぶんの下余白 */
-	padding-bottom: var(--w-taskbar-h);
+	/* 上に固定したタスクバーに隠れないぶんの余白 */
+	padding-top: var(--w-taskbar-h);
 	-webkit-text-size-adjust: 100%;
 }
 
@@ -106,63 +112,115 @@ img {
 
 /* -------------------------------------------------------- デスクトップ */
 
+/*
+ * 窓の外側には必ず隙間を空け、そこからデスクトップのティールを覗かせる。
+ * 「窓が敷き詰まったページ」ではなく「窓が散らばったデスクトップ」に見せるため。
+ */
 .desktop {
 	min-height: calc(100dvh - var(--w-taskbar-h));
-	padding: 8px;
 	background: var(--w-desktop);
 }
 
 /*
- * トップページ: 広い画面では 2 カラム、狭い画面では縦積み。
+ * トップページのウィンドウ配置。
  *
- * 縦の隙間を作らずに積みたいので、広い画面ではカラムを flex にして
- * 各カラム内で詰める。狭い画面では .desktop-col を display:contents に
- * 落として、order で読ませたい順（看板 → 最新記事 → About → ドット絵）に
- * 並べ替える。
+ * 狭い画面: 1 カラムに縦積み。高さは中身なり。
+ * 広い画面: 列数 2 → 3 → 4 のグリッドに、1 行 = --w-row(8px) の細かい行を敷く。
+ *           各窓は自分の col / row（Window.astro が --win-col / --win-row で渡す）
+ *           のぶんだけマスを占め、grid-auto-flow:dense が残った穴を後ろの窓で
+ *           埋める。幅も高さもバラバラなまま隙間なく詰まるので、masonry 的な
+ *           不揃いさが出る。窓の高さが固定になるぶん、あふれた中身は
+ *           クライアント領域側でスクロールさせる（本物の窓と同じ挙動）。
  */
 .desktop-grid {
 	display: grid;
-	grid-template-columns: 1fr;
-	gap: 10px;
+	grid-template-columns: minmax(0, 1fr);
+	gap: var(--w-gap);
+	padding: var(--w-gap);
 	align-content: start;
 }
 
-.desktop-col {
-	display: contents;
-}
-
-@media (min-width: 900px) {
+@media (min-width: 640px) {
 	.desktop-grid {
-		grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
-		align-items: start;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		grid-auto-rows: var(--w-row);
+		grid-auto-flow: row dense;
+		/*
+		 * row-gap は「またいだ行の数だけ」高さに足されてしまい、span から
+		 * 実寸を読めなくなる（span 34 が 34*8 ではなく 470px になる）。
+		 * 縦のすきまは窓側の margin-bottom で作り、span N = N*--w-row に保つ。
+		 */
+		row-gap: 0;
 	}
 
-	.desktop-col {
-		display: flex;
-		flex-direction: column;
-		gap: 10px;
-		min-width: 0;
+	.desktop-grid > .win {
+		/* span がカラム数を超えたぶんはブラウザが自動で切り詰めてくれる */
+		grid-column: span var(--win-col, 1);
+		grid-row: span var(--win-row, 30);
+		margin-bottom: var(--w-gap);
+	}
+
+	/* 割り当てられたマスいっぱいに広がる窓（一覧・文書系）。あふれた中身は窓の中でスクロール */
+	.desktop-grid > .win:not(.win-fit) {
+		overflow: hidden;
+	}
+
+	.desktop-grid > .win:not(.win-fit) > .win-body {
+		overflow: auto;
+	}
+
+	/*
+	 * ダイアログ系の窓は中身なりの高さで止める。マスの余りは埋めずに
+	 * デスクトップのティールに戻すので、灰色の死んだ余白ができない。
+	 */
+	.desktop-grid > .win-fit {
+		align-self: start;
+	}
+
+	/* 窓自体が高さを持つので、中の入れ子スクロールは要らない */
+	.desktop-grid .win-scroll {
+		max-height: none;
+		overflow-y: visible;
 	}
 }
 
-@media (max-width: 899px) {
-	.area-main {
-		order: 1;
-	}
-	.area-posts {
-		order: 2;
-	}
-	.area-about {
-		order: 3;
-	}
-	.area-paint {
-		order: 4;
+/*
+ * 2 カラムのときに col=2 を許すと「全幅の帯が縦に積む」だけになって、
+ * 幅の変化が消えてしまう。3 カラム以上になるまでは全部 1 カラム幅で並べる。
+ */
+@media (min-width: 640px) and (max-width: 999px) {
+	.desktop-grid > .win {
+		grid-column: span 1;
 	}
 }
 
-/* 記事ページなど「1 枚だけ」のレイアウト。本文が長くなりすぎない幅に絞る */
+@media (min-width: 1000px) {
+	.desktop-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+@media (min-width: 1360px) {
+	.desktop-grid {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+}
+
+@media (min-width: 1800px) {
+	.desktop-grid {
+		grid-template-columns: repeat(5, minmax(0, 1fr));
+	}
+}
+
+/* 記事ページなど「1 枚だけ」のレイアウト */
 .desktop-single {
-	max-width: 880px;
+	min-width: 0;
+	padding: var(--w-gap);
+}
+
+/* 窓は画面いっぱいでも、本文は読みやすい幅で止める */
+.win-content {
+	max-width: 900px;
 	margin: 0 auto;
 }
 
@@ -172,6 +230,8 @@ img {
 	display: flex;
 	flex-direction: column;
 	min-width: 0;
+	/* タスクバーから復帰したときにバーの下へ潜り込まないように */
+	scroll-margin-top: var(--w-taskbar-h);
 	padding: 3px;
 	background: var(--w-face);
 	box-shadow:
@@ -537,6 +597,64 @@ button.taskbar-item {
 	}
 }
 
+/* ------------------------------------------------------------ スクロールバー */
+
+/*
+ * 窓の中身があふれたときに出るスクロールバー。OS 標準のオーバーレイ表示だと
+ * 「窓の中で中身がスクロールしている」ことが伝わらないので、Win95 の
+ * 灰色トラック + 立体つまみに置き換える。
+ */
+.win-body::-webkit-scrollbar {
+	width: 16px;
+	height: 16px;
+}
+
+.win-body::-webkit-scrollbar-track {
+	background-color: var(--w-face-light);
+	background-image: linear-gradient(
+			45deg,
+			var(--w-white) 25%,
+			transparent 25%,
+			transparent 75%,
+			var(--w-white) 75%
+		),
+		linear-gradient(
+			45deg,
+			var(--w-white) 25%,
+			transparent 25%,
+			transparent 75%,
+			var(--w-white) 75%
+		);
+	background-size: 2px 2px;
+	background-position:
+		0 0,
+		1px 1px;
+}
+
+.win-body::-webkit-scrollbar-thumb {
+	background: var(--w-face);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-dark),
+		inset 1px 1px 0 0 var(--w-white),
+		inset -2px -2px 0 0 var(--w-shadow),
+		inset 2px 2px 0 0 var(--w-face-light);
+}
+
+.win-body::-webkit-scrollbar-corner {
+	background: var(--w-face);
+}
+
+/*
+ * Firefox はパーツ指定ができないので色だけ寄せる。
+ * Chrome では scrollbar-color を指定すると ::-webkit-scrollbar の指定が
+ * まるごと無効になってしまうので、::-webkit-scrollbar を解さないブラウザに限る。
+ */
+@supports not selector(::-webkit-scrollbar) {
+	.win-body {
+		scrollbar-color: var(--w-face) var(--w-face-light);
+	}
+}
+
 /* ---------------------------------------------------------- ステータスバー */
 
 .win-status {
@@ -642,6 +760,416 @@ button.taskbar-item {
 	padding: 12px;
 	color: var(--w-text-disabled);
 	font-size: 12px;
+}
+
+/* 3 列しかないリスト（お気に入りなど）は日付欄を作らない */
+@media (min-width: 640px) {
+	.listview-row-2col {
+		grid-template-columns: 20px minmax(0, 1fr) auto;
+	}
+}
+
+/* ---------------------------------------------------- アイコン表示 (大アイコン) */
+
+/*
+ * マイ コンピュータ / コントロール パネルの中身。
+ * auto-fill にしてあるので、窓が細いと 2 列、広いと 4 列と勝手に変わる。
+ */
+.iconview {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+	gap: 2px;
+	padding: 6px 4px;
+}
+
+.iconview-sm {
+	grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+}
+
+.iconview-item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 3px;
+	padding: 6px 4px;
+	color: var(--w-text);
+	text-decoration: none;
+	text-align: center;
+}
+
+.iconview-item:visited {
+	color: var(--w-text);
+}
+
+.iconview-item svg {
+	flex: none;
+}
+
+.iconview-label {
+	font-size: 11px;
+	line-height: 1.3;
+	overflow-wrap: anywhere;
+}
+
+.iconview-item:hover .iconview-label,
+.iconview-item:focus-visible .iconview-label {
+	background: var(--w-select);
+	color: var(--w-select-text);
+	outline: none;
+}
+
+.iconview-item:focus-visible {
+	outline: 1px dotted var(--w-dark);
+	outline-offset: -2px;
+}
+
+.iconview-note {
+	font-size: 10px;
+	color: #555;
+}
+
+/* ------------------------------------------------------------------ タブ */
+
+.tabs {
+	display: flex;
+	gap: 2px;
+	padding: 0 2px;
+	/* タブの下端とパネルの上端を重ねる */
+	margin-bottom: -2px;
+	position: relative;
+	z-index: 1;
+}
+
+.tab {
+	padding: 3px 10px 4px;
+	font-size: 11px;
+	white-space: nowrap;
+	background: var(--w-face);
+	box-shadow:
+		inset 1px 1px 0 0 var(--w-white),
+		inset -1px 0 0 0 var(--w-dark),
+		inset -2px 0 0 0 var(--w-shadow);
+}
+
+.tab.is-active {
+	font-weight: 700;
+	/* 選択中のタブだけ少し飛び出して、パネルと地続きに見せる */
+	padding: 4px 12px 5px;
+	margin-top: -2px;
+}
+
+.tab:not(.is-active) {
+	color: #333;
+}
+
+.tabpanel {
+	padding: 10px;
+	background: var(--w-face);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-dark),
+		inset 1px 1px 0 0 var(--w-white),
+		inset -2px -2px 0 0 var(--w-shadow),
+		inset 2px 2px 0 0 var(--w-face-light);
+}
+
+/* ------------------------------------------------- システムのプロパティ */
+
+.sysprop {
+	display: flex;
+	gap: 10px;
+}
+
+.sysprop-icon {
+	flex: none;
+}
+
+.sysprop-list {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	gap: 2px 8px;
+	margin: 0;
+	font-size: 11px;
+	line-height: 1.5;
+}
+
+.sysprop-list dt {
+	white-space: nowrap;
+}
+
+.sysprop-list dd {
+	margin: 0;
+	overflow-wrap: anywhere;
+}
+
+/* ---------------------------------------------------------------- メモ帳 */
+
+.notepad {
+	padding: 4px 6px;
+	font-family: var(--w-font-mono);
+	font-size: 12px;
+	line-height: 1.6;
+}
+
+.notepad-line {
+	display: flex;
+	gap: 8px;
+	margin: 0;
+	white-space: nowrap;
+}
+
+.notepad-date {
+	flex: none;
+	color: #555;
+	font-variant-numeric: tabular-nums;
+}
+
+.notepad-line a {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+/* ------------------------------------------------------ メディア プレーヤー */
+
+.player {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.player-screen {
+	position: relative;
+	padding: 4px 6px 6px;
+	background: #000;
+	color: #3ba03b;
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-white),
+		inset 1px 1px 0 0 var(--w-shadow),
+		inset -2px -2px 0 0 var(--w-face-light),
+		inset 2px 2px 0 0 var(--w-dark);
+}
+
+.player-eq {
+	display: flex;
+	align-items: flex-end;
+	gap: 2px;
+	height: 34px;
+}
+
+.player-eq span {
+	flex: 1 1 0;
+	height: var(--h);
+	background: linear-gradient(180deg, #7cf87c, #1a7a1a);
+	transform-origin: bottom;
+	animation: eq 1.1s steps(4, end) infinite alternate;
+	/* 棒ごとに位相をずらす。--i は 0,1,2… */
+	animation-delay: calc(var(--i) * -0.13s);
+}
+
+@keyframes eq {
+	from {
+		transform: scaleY(0.25);
+	}
+	to {
+		transform: scaleY(1);
+	}
+}
+
+.player-track {
+	margin: 4px 0 0;
+	font-family: var(--w-font-mono);
+	font-size: 10px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.player-seek {
+	position: relative;
+	height: 12px;
+}
+
+.player-thumb {
+	position: absolute;
+	top: -2px;
+	left: 22%;
+	width: 9px;
+	height: 16px;
+	background: var(--w-face);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-dark),
+		inset 1px 1px 0 0 var(--w-white),
+		inset -2px -2px 0 0 var(--w-shadow),
+		inset 2px 2px 0 0 var(--w-face-light);
+}
+
+.player-transport {
+	display: flex;
+	align-items: center;
+	gap: 3px;
+}
+
+.player-btn {
+	display: grid;
+	place-items: center;
+	min-width: 22px;
+	height: 18px;
+	font-size: 9px;
+	background: var(--w-face);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-dark),
+		inset 1px 1px 0 0 var(--w-white),
+		inset -2px -2px 0 0 var(--w-shadow),
+		inset 2px 2px 0 0 var(--w-face-light);
+}
+
+.player-time {
+	margin-left: auto;
+	font-family: var(--w-font-mono);
+	font-size: 10px;
+	font-variant-numeric: tabular-nums;
+}
+
+/* ------------------------------------------------------------ カウンター */
+
+.counter {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	text-align: center;
+}
+
+/* 工事中のトラ縞 */
+.counter-stripe {
+	width: 100%;
+	height: 10px;
+	background: repeating-linear-gradient(
+		-45deg,
+		#000 0 6px,
+		#ffd75e 6px 12px
+	);
+}
+
+.counter-label {
+	margin: 0;
+	font-size: 11px;
+}
+
+.counter-digits {
+	display: flex;
+	gap: 2px;
+	margin: 0;
+}
+
+.counter-digit {
+	display: grid;
+	place-items: center;
+	width: 16px;
+	padding: 2px 0;
+	background: #000;
+	color: #3ba03b;
+	font-family: var(--w-font-mono);
+	font-size: 15px;
+	font-weight: 700;
+}
+
+/* -------------------------------------------- カスケードするダイアログ */
+
+/*
+ * 「The world you were born in / no longer exists」が連打されて重なっている飾り。
+ * 窓のクライアント領域を基準に絶対配置しているので、外のグリッドには響かない。
+ */
+/*
+ * ダイアログは絶対配置なので、重なった分の幅と高さをここで確保しておく。
+ * 窓が広いときに左に寄って見えないよう、中央に置く。
+ */
+.cascade {
+	position: relative;
+	width: 258px;
+	max-width: 100%;
+	min-height: 142px;
+	margin: 0 auto;
+}
+
+.cascade-dialog {
+	position: absolute;
+	top: calc(var(--i) * 13px);
+	left: calc(var(--i) * 13px);
+	z-index: var(--i);
+	width: 204px;
+	padding: 3px;
+	background: var(--w-face);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-dark),
+		inset 1px 1px 0 0 var(--w-white),
+		inset -2px -2px 0 0 var(--w-shadow),
+		inset 2px 2px 0 0 var(--w-face-light);
+}
+
+.cascade-titlebar {
+	display: flex;
+	align-items: center;
+	gap: 3px;
+	padding: 2px 2px 2px 3px;
+	background: linear-gradient(
+		90deg,
+		var(--w-title-active-1),
+		var(--w-title-active-2)
+	);
+	color: var(--w-title-text);
+}
+
+.cascade-title {
+	flex: 1 1 auto;
+	min-width: 0;
+	font-size: 10px;
+	font-weight: 700;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
+.cascade-close {
+	flex: none;
+	display: grid;
+	place-items: center;
+	width: 13px;
+	height: 12px;
+	font-size: 8px;
+	color: var(--w-dark);
+	background: var(--w-face);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-dark),
+		inset 1px 1px 0 0 var(--w-white),
+		inset -2px -2px 0 0 var(--w-shadow),
+		inset 2px 2px 0 0 var(--w-face-light);
+}
+
+.cascade-body {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 6px;
+	padding: 10px 8px 8px;
+}
+
+.cascade-message {
+	margin: 0;
+	font-size: 12px;
+	font-weight: 700;
+}
+
+.cascade-ok {
+	display: grid;
+	place-items: center;
+	width: 56px;
+	height: 18px;
+	font-size: 11px;
+	background: var(--w-face);
+	box-shadow:
+		inset -1px -1px 0 0 var(--w-dark),
+		inset 1px 1px 0 0 var(--w-white),
+		inset -2px -2px 0 0 var(--w-shadow),
+		inset 2px 2px 0 0 var(--w-face-light);
 }
 
 /* ------------------------------------------------------------ 記事カード */
@@ -903,16 +1431,19 @@ a:focus-visible {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: 14px;
-	padding: clamp(28px, 8vw, 72px) 16px;
+	/* 高さの決まった窓の中で上下中央に置く */
+	justify-content: center;
+	min-height: 100%;
+	gap: 12px;
+	padding: clamp(20px, 4vw, 40px) 16px;
 	text-align: center;
 }
 
 .signboard-title {
 	margin: 0;
-	padding: clamp(10px, 3vw, 22px) clamp(16px, 6vw, 48px);
+	padding: clamp(8px, 2vw, 18px) clamp(14px, 4vw, 36px);
 	border: 3px solid var(--w-dark);
-	font-size: clamp(24px, 7vw, 44px);
+	font-size: clamp(22px, 5vw, 38px);
 	font-weight: 700;
 	letter-spacing: 0.06em;
 	line-height: 1.25;
@@ -990,9 +1521,13 @@ a:focus-visible {
 
 /* ------------------------------------------------------------- タスクバー */
 
+/*
+ * 画面の「上」に固定している。OS のタスクバーは下だが、ブログとして読むときは
+ * ナビゲーションが上にあるほうが自然なのでこの位置にしている。
+ */
 .taskbar {
 	position: fixed;
-	inset: auto 0 0 0;
+	inset: 0 0 auto 0;
 	z-index: 100;
 	display: flex;
 	align-items: center;
@@ -1000,9 +1535,11 @@ a:focus-visible {
 	height: var(--w-taskbar-h);
 	padding: 2px 3px;
 	background: var(--w-face);
+	/* 上が明るく下が暗い = 手前に浮いて見えるベベル */
 	box-shadow:
 		inset 0 1px 0 0 var(--w-white),
-		inset 0 2px 0 0 var(--w-face-light);
+		inset 0 -1px 0 0 var(--w-dark),
+		inset 0 -2px 0 0 var(--w-shadow);
 }
 
 .taskbar-start {
@@ -1041,12 +1578,22 @@ a:focus-visible {
 		inset -1px 0 0 0 var(--w-white);
 }
 
+/*
+ * 窓の数だけボタンが並ぶ。狭い画面では潰しきらずに横スクロールへ逃がす。
+ * バーの高さが 22px しかないのでスクロールバー自体は隠す。
+ */
 .taskbar-items {
 	flex: 1 1 auto;
 	display: flex;
 	gap: 3px;
 	min-width: 0;
-	overflow: hidden;
+	overflow-x: auto;
+	overflow-y: hidden;
+	scrollbar-width: none;
+}
+
+.taskbar-items::-webkit-scrollbar {
+	display: none;
 }
 
 .taskbar-item {
@@ -1054,7 +1601,7 @@ a:focus-visible {
 	display: flex;
 	align-items: center;
 	gap: 4px;
-	min-width: 40px;
+	min-width: 92px;
 	height: 22px;
 	padding: 0 6px;
 	border: 0;
@@ -1139,7 +1686,8 @@ a:focus-visible {
 .startmenu {
 	position: fixed;
 	left: 3px;
-	bottom: calc(var(--w-taskbar-h) - 1px);
+	/* タスクバーが上にあるので、メニューは下に開く */
+	top: calc(var(--w-taskbar-h) - 1px);
 	z-index: 110;
 	display: flex;
 	width: min(300px, calc(100vw - 6px));
@@ -1201,7 +1749,8 @@ a:focus-visible {
 }
 
 .startmenu-list a:hover,
-.startmenu-list a:focus-visible {
+.startmenu-list a:focus-visible,
+.startmenu-list a[aria-current="page"] {
 	background: var(--w-select);
 	color: var(--w-select-text);
 	outline: none;

@@ -1,0 +1,65 @@
+---
+import Window from "../Window.astro";
+import Icon from "../Icon.astro";
+
+/**
+ * 「お気に入り」風の外部リンク集。
+ * 出したいリンクは index.astro 側から links プロパティで渡す。
+ */
+
+interface Link {
+	label: string;
+	url: string;
+	note?: string;
+}
+
+interface Props {
+	links: Link[];
+	col?: 1 | 2;
+	row?: number;
+}
+
+const { links, col = 1, row = 24 } = Astro.props;
+---
+
+<Window
+	id="links"
+	class="area-links"
+	icon="world"
+	title="お気に入り"
+	bodyClass="win-body-flush"
+	col={col}
+	row={row}
+>
+	<div class="win-menubar" slot="menubar">
+		<span>ファイル(<span class="key">F</span>)</span>
+		<span>編集(<span class="key">E</span>)</span>
+		<span>お気に入り(<span class="key">A</span>)</span>
+	</div>
+
+	{
+		links.length === 0 ? (
+			<p class="listview-empty">リンクがまだありません。</p>
+		) : (
+			<div class="listview">
+				{links.map((l) => (
+					<a
+						class="listview-row listview-row-2col"
+						href={l.url}
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						<Icon name="world" class="listview-icon" />
+						<span class="listview-name">{l.label}</span>
+						<span class="listview-meta">{l.note ?? "↗"}</span>
+					</a>
+				))}
+			</div>
+		)
+	}
+
+	<Fragment slot="status">
+		<span>外部サイトへ移動します</span>
+		<span>{links.length} 個</span>
+	</Fragment>
+</Window>

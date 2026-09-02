@@ -1,0 +1,55 @@
+---
+import Window from "../Window.astro";
+import Icon from "../Icon.astro";
+
+/**
+ * 「The world you were born in no longer exists」のダイアログが連打されて
+ * 重なっている飾り窓。タイトルバーで文が始まり、本文で言い切る。
+ * ダイアログは窓の中に絶対配置しているので、外のグリッドには影響しない。
+ */
+
+interface Props {
+	message?: string;
+	count?: number;
+	col?: 1 | 2;
+	row?: number;
+}
+
+const {
+	message = "no longer exists",
+	count = 5,
+	col = 1,
+	row = 26,
+} = Astro.props;
+
+const dialogs = Array.from({ length: count }, (_, i) => i);
+---
+
+<Window
+	id="nolongerexists"
+	class="area-nolongerexists"
+	icon="warning"
+	title="The world you were born in"
+	bodyClass="win-body-face"
+	col={col}
+	row={row}
+	fit
+>
+	<div class="cascade">
+		{
+			dialogs.map((i) => (
+				<div class="cascade-dialog" style={`--i:${i}`} aria-hidden={i < count - 1}>
+					<div class="cascade-titlebar">
+						<Icon name="warning" size={12} />
+						<span class="cascade-title">The world you were born in</span>
+						<span class="cascade-close">✕</span>
+					</div>
+					<div class="cascade-body">
+						<p class="cascade-message">{message}</p>
+						<span class="cascade-ok">OK</span>
+					</div>
+				</div>
+			))
+		}
+	</div>
+</Window>

@@ -3,6 +3,7 @@ import {
 	getEmDashCollection,
 	getEmDashEntry,
 	getSiteSettings,
+	getTaxonomyTerms,
 	getTermsForEntries,
 } from "emdash";
 import { PortableText } from "emdash/ui";
@@ -10,6 +11,14 @@ import Base from "../layouts/Base.astro";
 import Window from "../components/Window.astro";
 import Icon from "../components/Icon.astro";
 import PixelArt from "../components/PixelArt.astro";
+import MyComputerWindow from "../components/desktop/MyComputerWindow.astro";
+import ControlPanelWindow from "../components/desktop/ControlPanelWindow.astro";
+import SystemPropertiesWindow from "../components/desktop/SystemPropertiesWindow.astro";
+import NotepadWindow from "../components/desktop/NotepadWindow.astro";
+import LinksWindow from "../components/desktop/LinksWindow.astro";
+import MediaPlayerWindow from "../components/desktop/MediaPlayerWindow.astro";
+import CounterWindow from "../components/desktop/CounterWindow.astro";
+import NoLongerExistsWindow from "../components/desktop/NoLongerExistsWindow.astro";
 import { resolveStarterSiteIdentity } from "../utils/site-identity";
 
 const { entries: posts, cacheHint } = await getEmDashCollection("posts", {
@@ -24,6 +33,18 @@ const { siteTitle, siteTagline } = resolveStarterSiteIdentity(
 /** 「このサイトについて」ウィンドウ。about ページが無ければ差し込み文を出す */
 const { entry: about } = await getEmDashEntry("pages", "about");
 
+/** マイ コンピュータ窓のページ数と、システムのプロパティ窓のカウント用 */
+const { entries: pages } = await getEmDashCollection("pages");
+
+/*
+ * タグ / カテゴリはタクソノミが未定義だと投げるので、無ければ空扱いにする。
+ * （コントロール パネル窓とマイ コンピュータ窓はどちらも空なら中身を出さない）
+ */
+const [tags, categories] = await Promise.all([
+	getTaxonomyTerms("tag").catch(() => []),
+	getTaxonomyTerms("category").catch(() => []),
+]);
+
 const recent = posts.slice(0, 8);
 const tagsByEntry = await getTermsForEntries(
 	"posts",
@@ -31,197 +52,265 @@ const tagsByEntry = await getTermsForEntries(
 	"tag",
 );
 
+/** メモ帳（更新履歴）に流し込む行 */
+const changelog = posts.slice(0, 12).map((p) => ({
+	title: p.data.title,
+	href: `/posts/${p.id}`,
+	date: p.data.publishedAt ?? null,
+}));
+
+const lastUpdated = posts.find((p) => p.data.publishedAt)?.data.publishedAt;
+
+/** 「お気に入り」窓に出す外部リンク。ここを書き換えれば中身が変わる */
+const favorites = [
+	{ label: "Internet Archive", url: "https://archive.org/", note: "web" },
+	{ label: "Neocities", url: "https://neocities.org/", note: "web" },
+	{ label: "GitHub", url: "https://github.com/tenax66", note: "code" },
+];
+
 const dateFormat = new Intl.DateTimeFormat("ja-JP", {
 	year: "numeric",
 	month: "2-digit",
 	day: "2-digit",
 });
+
+/**
+ * 一覧系の窓は中身の件数で高さを決める。記事が 1 本しか無いのに
+ * 高さだけ確保すると、白い空白がそのまま見えてしまうため。
+ */
+const clampRow = (n: number, min: number, max: number) =>
+	Math.max(min, Math.min(max, n));
+const postsRow = clampRow(16 + recent.length * 4, 20, 48);
+const notepadRow = clampRow(12 + changelog.length * 3, 16, 36);
 ---
 
 <Base title={siteTitle} description={siteTagline} chrome="desktop">
+	{/*
+	 * 窓は .desktop-grid の直下に並べる。並び順 = モバイルでの縦積み順 =
+	 * タスクバーのボタン順なので、大事なものから書く。広い画面での配置は
+	 * 各窓の col / row（grid の span）と grid-auto-flow: dense に任せる。
+	 */}
 	<div class="desktop-grid">
-		{/* ========================================================= 左カラム */}
-		<div class="desktop-col">
-			{/* ---------------------------------------------- 看板ウィンドウ */}
-			<Window
-				id="main"
-				class="area-main"
-				icon="document"
-				title={`${siteTitle} - ${siteTagline}`}
-				closable={false}
-			>
-				<div class="win-menubar" slot="menubar">
-					<span>ファイル(<span class="key">F</span>)</span>
-					<span>編集(<span class="key">E</span>)</span>
-					<span>表示(<span class="key">V</span>)</span>
-					<a href="/posts">記事(<span class="key">P</span>)</a>
-					<a href="/pages">ページ(<span class="key">G</span>)</a>
-				</div>
+		{/* ---------------------------------------------- 看板ウィンドウ */}
+		<Window
+			id="main"
+			class="area-main"
+			icon="document"
+			title={`${siteTitle} - ${siteTagline}`}
+			closable={false}
+			col={2}
+			row={46}
+		>
+			<div class="win-menubar" slot="menubar">
+				<span>ファイル(<span class="key">F</span>)</span>
+				<span>編集(<span class="key">E</span>)</span>
+				<span>表示(<span class="key">V</span>)</span>
+				<a href="/posts">記事(<span class="key">P</span>)</a>
+				<a href="/pages">ページ(<span class="key">G</span>)</a>
+			</div>
 
-				<div class="win-toolbar" slot="toolbar">
-					<a class="btn btn-icon" href="/posts" title="記事一覧" aria-label="記事一覧">
-						<Icon name="folder" />
-					</a>
-					<a class="btn btn-icon" href="/pages" title="ページ一覧" aria-label="ページ一覧">
-						<Icon name="document" />
-					</a>
-					<div class="win-toolbar-sep" aria-hidden="true"></div>
-					<a
-						class="btn btn-icon"
-						href="/about"
-						title="このサイトについて"
-						aria-label="このサイトについて"
-					>
-						<Icon name="ie" />
-					</a>
-				</div>
+			<div class="win-toolbar" slot="toolbar">
+				<a class="btn btn-icon" href="/posts" title="記事一覧" aria-label="記事一覧">
+					<Icon name="folder" />
+				</a>
+				<a class="btn btn-icon" href="/pages" title="ページ一覧" aria-label="ページ一覧">
+					<Icon name="document" />
+				</a>
+				<div class="win-toolbar-sep" aria-hidden="true"></div>
+				<a
+					class="btn btn-icon"
+					href="/about"
+					title="このサイトについて"
+					aria-label="このサイトについて"
+				>
+					<Icon name="ie" />
+				</a>
+			</div>
 
-				<div class="signboard">
-					<h1 class="signboard-title">{siteTitle}</h1>
-					<p class="signboard-tagline">{siteTagline}</p>
-				</div>
+			<div class="signboard">
+				<h1 class="signboard-title">{siteTitle}</h1>
+				<p class="signboard-tagline">{siteTagline}</p>
+			</div>
 
-				<Fragment slot="status">
-					<span>ヘルプを表示するには [ヘルプ] メニューから [トピックの検索] をクリック</span>
-					<span>1/1</span>
-				</Fragment>
-			</Window>
+			<Fragment slot="status">
+				<span>ヘルプを表示するには [ヘルプ] メニューから [トピックの検索] をクリック</span>
+				<span>1/1</span>
+			</Fragment>
+		</Window>
 
-			{/* ---------------------------------------- このサイトについて */}
-			<Window
-				id="about"
-				class="area-about"
-				icon="ie"
-				title={`${about?.data.title ?? "このサイトについて"} - Web Browser`}
-			>
-				<div class="win-toolbar" slot="toolbar">
-					<span class="btn btn-icon" aria-hidden="true"><Icon name="back" /></span>
-					<span class="btn btn-icon" aria-hidden="true"><Icon name="forward" /></span>
-					<span class="btn btn-icon" aria-hidden="true"><Icon name="stop" /></span>
-					<a class="btn btn-icon" href="/" title="ホーム" aria-label="ホーム">
-						<Icon name="home" />
-					</a>
-					<div class="win-address">
-						<span class="win-address-label">アドレス</span>
-						<div class="win-address-field">
-							<Icon name="ie" />
-							<span>{`${Astro.url.origin}/about`}</span>
+		{/* -------------------------------------------------- 最新記事 */}
+		<Window
+			id="posts"
+			class="area-posts"
+			icon="folder-open"
+			title="最新記事"
+			bodyClass="win-body-flush"
+			col={2}
+			row={postsRow}
+		>
+			<div class="win-menubar" slot="menubar">
+				<span>ファイル(<span class="key">F</span>)</span>
+				<span>編集(<span class="key">E</span>)</span>
+				<span>表示(<span class="key">V</span>)</span>
+				<a href="/posts">すべて表示(<span class="key">A</span>)</a>
+			</div>
+
+			<div class="win-scroll">
+				{
+					recent.length === 0 ? (
+						<p class="listview-empty">
+							まだ記事がありません。
+							<a href="/_emdash/admin/content/posts/new">1 本目を書く</a>
+						</p>
+					) : (
+						<div class="listview">
+							{recent.map((post) => {
+								const postTags = tagsByEntry.get(post.data.id) ?? [];
+								return (
+									<a class="listview-row" href={`/posts/${post.id}`}>
+										<Icon name="document" class="listview-icon" />
+										<span class="listview-name">{post.data.title}</span>
+										<span class="listview-meta">
+											{post.data.publishedAt
+												? dateFormat.format(post.data.publishedAt)
+												: "下書き"}
+										</span>
+										<span class="listview-meta listview-meta-extra">
+											{postTags.length > 0
+												? postTags.map((t) => t.label).join(", ")
+												: "—"}
+										</span>
+									</a>
+								);
+							})}
 						</div>
+					)
+				}
+			</div>
+
+			<Fragment slot="status">
+				<span>{posts.length} 個のオブジェクト</span>
+				<span>{recent.length} 件表示</span>
+			</Fragment>
+		</Window>
+
+		{/* ---------------------------------------- このサイトについて */}
+		<Window
+			id="about"
+			class="area-about"
+			icon="ie"
+			title={`${about?.data.title ?? "このサイトについて"} - Web Browser`}
+			col={2}
+			row={30}
+		>
+			<div class="win-toolbar" slot="toolbar">
+				<span class="btn btn-icon" aria-hidden="true"><Icon name="back" /></span>
+				<span class="btn btn-icon" aria-hidden="true"><Icon name="forward" /></span>
+				<span class="btn btn-icon" aria-hidden="true"><Icon name="stop" /></span>
+				<a class="btn btn-icon" href="/" title="ホーム" aria-label="ホーム">
+					<Icon name="home" />
+				</a>
+				<div class="win-address">
+					<span class="win-address-label">アドレス</span>
+					<div class="win-address-field">
+						<Icon name="ie" />
+						<span>{`${Astro.url.origin}/about`}</span>
 					</div>
 				</div>
+			</div>
 
-				<div class="prose">
-					{
-						about ? (
-							<PortableText value={about.data.content} />
-						) : (
-							<p>
-								about ページがまだありません。
-								<a href="/_emdash/admin/content/pages/new">管理画面から作成</a>
-								すると、ここに本文が表示されます。
-							</p>
-						)
-					}
+			<div class="prose">
+				{
+					about ? (
+						<PortableText value={about.data.content} />
+					) : (
+						<p>
+							about ページがまだありません。
+							<a href="/_emdash/admin/content/pages/new">管理画面から作成</a>
+							すると、ここに本文が表示されます。
+						</p>
+					)
+				}
+			</div>
+
+			<div class="row" style="margin-top:14px">
+				{about && <a class="btn" href="/about">続きを読む</a>}
+				<a class="btn" href="/pages">ページ一覧</a>
+			</div>
+
+			<Fragment slot="status">
+				<span>ページが表示されました</span>
+				<span>インターネット</span>
+			</Fragment>
+		</Window>
+
+		{/* ------------------------------------------ マイ コンピュータ */}
+		<MyComputerWindow
+			postCount={posts.length}
+			pageCount={pages.length}
+			categories={categories}
+			col={1}
+			row={32}
+		/>
+
+		{/* ---------------------------------------- コントロール パネル */}
+		<ControlPanelWindow tags={tags} col={1} row={24} />
+
+		{/* -------------------------------------------------- ドット絵 */}
+		<Window
+			id="paint"
+			class="area-paint"
+			icon="paint"
+			title="drive_my_car.bmp - ペイント"
+			bodyClass="win-body-face"
+			col={1}
+			row={50}
+			fit
+		>
+			<div class="win-menubar" slot="menubar">
+				<span>ファイル(<span class="key">F</span>)</span>
+				<span>編集(<span class="key">E</span>)</span>
+				<span>表示(<span class="key">V</span>)</span>
+				<span>変形(<span class="key">I</span>)</span>
+				<span>色(<span class="key">C</span>)</span>
+			</div>
+
+			<div class="paint">
+				<div class="paint-tools" aria-hidden="true">
+					{Array.from({ length: 16 }).map(() => <span class="paint-tool" />)}
 				</div>
-
-				<div class="row" style="margin-top:14px">
-					{about && <a class="btn" href="/about">続きを読む</a>}
-					<a class="btn" href="/pages">ページ一覧</a>
+				<div class="paint-canvas">
+					<PixelArt />
 				</div>
+			</div>
 
-				<Fragment slot="status">
-					<span>ページが表示されました</span>
-					<span>インターネット</span>
-				</Fragment>
-			</Window>
-		</div>
+			<Fragment slot="status">
+				<span>ヘルプを表示するには F1 キーを押してください</span>
+				<span>280 × 220</span>
+			</Fragment>
+		</Window>
 
-		{/* ========================================================= 右カラム */}
-		<div class="desktop-col">
-			{/* -------------------------------------------------- ドット絵 */}
-			<Window
-				id="paint"
-				class="area-paint"
-				icon="paint"
-				title="drive_my_car.bmp - ペイント"
-				bodyClass="win-body-face"
-			>
-				<div class="win-menubar" slot="menubar">
-					<span>ファイル(<span class="key">F</span>)</span>
-					<span>編集(<span class="key">E</span>)</span>
-					<span>表示(<span class="key">V</span>)</span>
-					<span>変形(<span class="key">I</span>)</span>
-					<span>色(<span class="key">C</span>)</span>
-				</div>
+		{/* -------------------------------------------------- 更新履歴 */}
+		<NotepadWindow entries={changelog} col={1} row={notepadRow} />
 
-				<div class="paint">
-					<div class="paint-tools" aria-hidden="true">
-						{Array.from({ length: 16 }).map(() => <span class="paint-tool" />)}
-					</div>
-					<div class="paint-canvas">
-						<PixelArt />
-					</div>
-				</div>
+		{/* ------------------------------------ システムのプロパティ */}
+		<SystemPropertiesWindow
+			siteTitle={siteTitle}
+			siteTagline={siteTagline}
+			postCount={posts.length}
+			pageCount={pages.length}
+			tagCount={tags.length}
+			lastUpdated={lastUpdated}
+			col={1}
+			row={36}
+		/>
 
-				<Fragment slot="status">
-					<span>ヘルプを表示するには F1 キーを押してください</span>
-					<span>280 × 220</span>
-				</Fragment>
-			</Window>
+		{/* -------------------------------------------------- お気に入り */}
+		<LinksWindow links={favorites} col={1} row={22} />
 
-			{/* -------------------------------------------------- 最新記事 */}
-			<Window
-				id="posts"
-				class="area-posts"
-				icon="folder-open"
-				title="最新記事"
-				bodyClass="win-body-flush"
-			>
-				<div class="win-menubar" slot="menubar">
-					<span>ファイル(<span class="key">F</span>)</span>
-					<span>編集(<span class="key">E</span>)</span>
-					<span>表示(<span class="key">V</span>)</span>
-					<a href="/posts">すべて表示(<span class="key">A</span>)</a>
-				</div>
-
-				<div class="win-scroll">
-					{
-						recent.length === 0 ? (
-							<p class="listview-empty">
-								まだ記事がありません。
-								<a href="/_emdash/admin/content/posts/new">1 本目を書く</a>
-							</p>
-						) : (
-							<div class="listview">
-								{recent.map((post) => {
-									const tags = tagsByEntry.get(post.data.id) ?? [];
-									return (
-										<a class="listview-row" href={`/posts/${post.id}`}>
-											<Icon name="document" class="listview-icon" />
-											<span class="listview-name">{post.data.title}</span>
-											<span class="listview-meta">
-												{post.data.publishedAt
-													? dateFormat.format(post.data.publishedAt)
-													: "下書き"}
-											</span>
-											<span class="listview-meta listview-meta-extra">
-												{tags.length > 0
-													? tags.map((t) => t.label).join(", ")
-													: "—"}
-											</span>
-										</a>
-									);
-								})}
-							</div>
-						)
-					}
-				</div>
-
-				<Fragment slot="status">
-					<span>{posts.length} 個のオブジェクト</span>
-					<span>{recent.length} 件表示</span>
-				</Fragment>
-			</Window>
-		</div>
+		{/* ------------------------------------------------- 飾りの窓たち */}
+		<NoLongerExistsWindow col={1} row={24} />
+		<MediaPlayerWindow col={1} row={24} />
+		<CounterWindow postCount={posts.length} col={1} row={20} />
 	</div>
 </Base>

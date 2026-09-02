@@ -10,16 +10,46 @@ import Icon from "./Icon.astro";
  *   default  クライアント領域の中身
  *   status   ステータスバーのセル（<span> を並べる。1 つ目が左寄せで伸びる）
  */
+type IconName =
+	| "document"
+	| "paint"
+	| "ie"
+	| "folder"
+	| "folder-open"
+	| "computer"
+	| "settings"
+	| "notepad"
+	| "media"
+	| "world"
+	| "warning"
+	| "network"
+	| "chip"
+	| "mail";
+
 interface Props {
 	/** タスクバーのボタンと結びつく ID */
 	id: string;
 	title: string;
-	icon?: "document" | "paint" | "ie" | "folder" | "folder-open" | "computer";
+	icon?: IconName;
 	/** × ボタンを出すか（false なら無効表示） */
 	closable?: boolean;
 	/** クライアント領域に足すクラス。win-body-face でグレー地にできる */
 	bodyClass?: string;
 	class?: string;
+	/**
+	 * デスクトップのグリッドで占める大きさ。
+	 *   col  横に何カラム分か（1 or 2）
+	 *   row  縦に何行分か。1 行 = --w-row（8px）なので row=30 で 240px
+	 * 640px 未満では無視され、中身なりの高さで 1 カラムに縦積みになる。
+	 */
+	col?: 1 | 2;
+	row?: number;
+	/**
+	 * true にすると割り当てられたマスいっぱいには広がらず、中身なりの高さで止まる。
+	 * ダイアログ系（中身の高さが決まっている窓）用。余ったマスは背景が見える。
+	 * 一覧や本文のように中身が伸び縮みする窓では使わないこと（下の窓と重なる）。
+	 */
+	fit?: boolean;
 }
 
 const {
@@ -29,11 +59,23 @@ const {
 	closable = true,
 	bodyClass,
 	class: className,
+	col,
+	row,
+	fit = false,
 } = Astro.props;
+
+/** グリッドの span は CSS 変数で渡す。指定が無ければ CSS 側の既定値が効く */
+const spanStyle = [
+	col ? `--win-col:${col}` : null,
+	row ? `--win-row:${row}` : null,
+]
+	.filter(Boolean)
+	.join(";");
 ---
 
 <section
-	class:list={["win", className]}
+	class:list={["win", fit && "win-fit", className]}
+	style={spanStyle || undefined}
 	data-window={id}
 	data-window-title={title}
 	aria-label={title}

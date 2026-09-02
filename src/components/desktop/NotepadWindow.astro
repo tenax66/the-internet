@@ -1,0 +1,55 @@
+---
+import Window from "../Window.astro";
+
+/**
+ * 「メモ帳」風の更新履歴窓。中身は実際の記事の公開日から作る。
+ */
+
+interface Props {
+	entries: { title: string; href: string; date: Date | null }[];
+	col?: 1 | 2;
+	row?: number;
+}
+
+const { entries, col = 1, row = 26 } = Astro.props;
+
+const dateFormat = new Intl.DateTimeFormat("ja-JP", {
+	year: "numeric",
+	month: "2-digit",
+	day: "2-digit",
+});
+---
+
+<Window
+	id="notepad"
+	class="area-notepad"
+	icon="notepad"
+	title="更新履歴.txt - メモ帳"
+	bodyClass="win-body-flush"
+	col={col}
+	row={row}
+>
+	<div class="win-menubar" slot="menubar">
+		<span>ファイル(<span class="key">F</span>)</span>
+		<span>編集(<span class="key">E</span>)</span>
+		<span>検索(<span class="key">S</span>)</span>
+		<span>ヘルプ(<span class="key">H</span>)</span>
+	</div>
+
+	<div class="notepad">
+		{
+			entries.length === 0 ? (
+				<p class="notepad-line">（まだ何も書かれていません）</p>
+			) : (
+				entries.map((e) => (
+					<p class="notepad-line">
+						<span class="notepad-date">
+							{e.date ? dateFormat.format(e.date) : "----/--/--"}
+						</span>
+						<a href={e.href}>{e.title}</a>
+					</p>
+				))
+			)
+		}
+	</div>
+</Window>

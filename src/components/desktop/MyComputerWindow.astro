@@ -1,0 +1,98 @@
+---
+import Window from "../Window.astro";
+import Icon from "../Icon.astro";
+
+/**
+ * 「マイ コンピュータ」風のナビゲーション窓。
+ * ドライブ = サイトの主要セクション、フォルダ = カテゴリ。
+ */
+
+interface Term {
+	slug: string;
+	label: string;
+	count?: number;
+}
+
+interface Props {
+	postCount: number;
+	pageCount: number;
+	categories?: Term[];
+	col?: 1 | 2;
+	row?: number;
+}
+
+const {
+	postCount,
+	pageCount,
+	categories = [],
+	col = 1,
+	row = 30,
+} = Astro.props;
+
+const drives = [
+	{
+		href: "/posts",
+		icon: "folder" as const,
+		label: "記事 (C:)",
+		note: `${postCount} 個`,
+	},
+	{
+		href: "/pages",
+		icon: "document" as const,
+		label: "ページ (D:)",
+		note: `${pageCount} 個`,
+	},
+	{
+		href: "/about",
+		icon: "ie" as const,
+		label: "このサイトについて",
+		note: "",
+	},
+];
+
+/** カテゴリはフォルダとして並べる。多すぎると窓からあふれるので上限を切る */
+const folders = categories.slice(0, 6);
+const itemCount = drives.length + folders.length;
+---
+
+<Window
+	id="computer"
+	class="area-computer"
+	icon="computer"
+	title="マイ コンピュータ"
+	bodyClass="win-body-flush"
+	col={col}
+	row={row}
+>
+	<div class="win-menubar" slot="menubar">
+		<span>ファイル(<span class="key">F</span>)</span>
+		<span>編集(<span class="key">E</span>)</span>
+		<span>表示(<span class="key">V</span>)</span>
+	</div>
+
+	<div class="iconview">
+		{
+			drives.map((d) => (
+				<a class="iconview-item" href={d.href}>
+					<Icon name={d.icon} size={32} />
+					<span class="iconview-label">{d.label}</span>
+					{d.note && <span class="iconview-note">{d.note}</span>}
+				</a>
+			))
+		}
+		{
+			folders.map((c) => (
+				<a class="iconview-item" href={`/category/${c.slug}`}>
+					<Icon name="folder" size={32} />
+					<span class="iconview-label">{c.label}</span>
+					{c.count != null && <span class="iconview-note">{c.count} 個</span>}
+				</a>
+			))
+		}
+	</div>
+
+	<Fragment slot="status">
+		<span>{itemCount} 個のオブジェクト</span>
+		<span>マイ コンピュータ</span>
+	</Fragment>
+</Window>

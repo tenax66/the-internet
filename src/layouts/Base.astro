@@ -23,7 +23,21 @@ interface Props {
 	chrome?: "desktop" | "window";
 	/** chrome="window" のときタイトルバーに出す文字。既定は `title - Web Browser` */
 	windowTitle?: string;
-	windowIcon?: "document" | "paint" | "ie" | "folder" | "folder-open" | "computer";
+	windowIcon?:
+		| "document"
+		| "paint"
+		| "ie"
+		| "folder"
+		| "folder-open"
+		| "computer"
+		| "settings"
+		| "notepad"
+		| "media"
+		| "world"
+		| "warning"
+		| "network"
+		| "chip"
+		| "mail";
 	/** ステータスバー左のテキスト */
 	status?: string;
 }
@@ -159,7 +173,9 @@ const addressUrl = `${Astro.url.origin}${Astro.url.pathname}`;
 								</div>
 							</div>
 
-							<slot />
+							<div class="win-content">
+								<slot />
+							</div>
 
 							<Fragment slot="status">
 								<span>{status}</span>
