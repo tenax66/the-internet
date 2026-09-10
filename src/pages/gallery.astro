@@ -3,16 +3,20 @@ import Base from "../layouts/Base.astro";
 import { getGallery, galleryImage } from "../utils/gallery";
 const cursor = Astro.url.searchParams.get("cursor") || undefined;
 const { entries, nextCursor, error } = await getGallery(cursor);
+const images = entries.flatMap(({ data }) => {
+	const src = galleryImage(data.image);
+	return src ? [{ data, src }] : [];
+});
 ---
 <Base title="ギャラリー" windowTitle="ギャラリー - 画像ビューア" windowIcon="paint" status="画像を選ぶと拡大します">
 	<div class="gallery-grid">
-		{entries.map(({ data }) => (
-			<a href={galleryImage(data.image)} class="gallery-item" data-gallery-image>
-				<img src={galleryImage(data.image)} alt={data.image?.alt || "ドット絵を拡大"} width={data.image?.width} height={data.image?.height} loading="lazy" />
+		{images.map(({ data, src }) => (
+			<a href={src} class="gallery-item" data-gallery-image>
+				<img src={src} alt={data.image?.alt || "ドット絵を拡大"} width={data.image?.width} height={data.image?.height} loading="lazy" />
 			</a>
 		))}
 	</div>
-	{entries.length === 0 && <p>{error ? "画像を読み込めませんでした。時間をおいて再度お試しください。" : "まだ画像がありません。"}</p>}
+	{images.length === 0 && <p>{error ? "画像を読み込めませんでした。時間をおいて再度お試しください。" : "まだ画像がありません。"}</p>}
 	<div class="row">
 		{cursor && <a class="btn" href="/gallery">最初のページ</a>}
 		{nextCursor && <a class="btn" href={`/gallery?cursor=${encodeURIComponent(nextCursor)}`}>以前の画像へ</a>}

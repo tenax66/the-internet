@@ -1,6 +1,7 @@
 import { getEmDashCollection } from "emdash";
 
 const ASSET_BASE_URL = "https://assets.internet.tanka.cc";
+const ASSET_ORIGIN = new URL(ASSET_BASE_URL).origin;
 
 export interface GalleryData {
 	id: string;
@@ -22,5 +23,15 @@ export async function getGallery(cursor?: string, limit = 24) {
 
 export function galleryImage(image: GalleryData["image"]) {
 	if (image?.src?.startsWith("/gallery/")) return `${ASSET_BASE_URL}${image.src}`;
-	return image?.src || (image?.id ? `/_emdash/api/media/file/${encodeURIComponent(image.id)}` : "");
+	if (image?.src) {
+		try {
+			const url = new URL(image.src);
+			if (url.origin === ASSET_ORIGIN && url.pathname.startsWith("/gallery/")) {
+				return url.href;
+			}
+		} catch {
+			// Invalid and unapproved sources fall back to the managed media ID below.
+		}
+	}
+	return image?.id ? `/_emdash/api/media/file/${encodeURIComponent(image.id)}` : "";
 }

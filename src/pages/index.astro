@@ -41,6 +41,7 @@ const { entries: pages, cacheHint: pagesCacheHint } = await getEmDashCollection(
 const sortedPages = [...pages].sort((a, b) => String(a.data.title).localeCompare(String(b.data.title), "ja"));
 const { entries: artwork, cacheHint: galleryCacheHint } = await getGallery(undefined, 1);
 const latestArt = artwork[0]?.data.image;
+const latestArtUrl = galleryImage(latestArt);
 if (Astro.cache?.enabled) Astro.cache.set({ tags: [...(cacheHint.tags ?? []), ...(pagesCacheHint.tags ?? []), ...(galleryCacheHint.tags ?? [])] });
 
 /*
@@ -210,7 +211,7 @@ const notepadRow = clampRow(9 + changelog.length * 3, 13, 33);
 					{Array.from({ length: 16 }).map(() => <span class="paint-tool" />)}
 				</div>
 				<div class="paint-canvas">
-					{latestArt ? <a class="latest-art" href="/gallery"><img src={galleryImage(latestArt)} alt={latestArt.alt || "最新のドット絵。ギャラリーへ"} width={latestArt.width} height={latestArt.height} /></a> : <p>まだ画像がありません。</p>}
+					{latestArt && latestArtUrl ? <a class="latest-art" href="/gallery"><img src={latestArtUrl} alt={latestArt.alt || "最新のドット絵。ギャラリーへ"} width={latestArt.width} height={latestArt.height} /></a> : <p>まだ画像がありません。</p>}
 				</div>
 			</div>
 			<Fragment slot="status"><a href="/gallery">過去のドット絵を見る →</a></Fragment>
