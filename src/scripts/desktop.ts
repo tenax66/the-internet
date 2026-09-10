@@ -45,11 +45,11 @@ function setup(): void {
 		win.el.addEventListener("focusin", () => setActive(win));
 
 		win.el
-			.querySelector<HTMLButtonElement>('[data-window-action="close"]')
-			?.addEventListener("click", (event) => {
+			.querySelectorAll<HTMLButtonElement>('[data-window-action="close"]')
+			.forEach(button => button.addEventListener("click", (event) => {
 				event.stopPropagation();
 				close(win);
-			});
+			}));
 	}
 
 	/*

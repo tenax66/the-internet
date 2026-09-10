@@ -17,3 +17,6 @@ worker-configuration.d.ts
 # repo-local scratch
 /tmp
 .wrangler
+
+# Mac
+.DS_Store

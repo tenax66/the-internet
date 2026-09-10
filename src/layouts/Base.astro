@@ -10,6 +10,8 @@ import {
 	resolveStarterSiteIdentity,
 } from "../utils/site-identity";
 import "../styles/win98.css";
+import "../styles/renewal.css";
+import "../styles/hardware.css";
 
 interface Props {
 	title: string;
@@ -82,7 +84,11 @@ const menuItems = (menu?.items ?? [])
 	}))
 	.filter((item) => !builtinUrls.has(normalizeUrl(item.url)));
 
-const navItems = [...builtinNav, ...menuItems];
+const navItems = [
+	...builtinNav,
+	...menuItems.filter((item) => normalizeUrl(item.url) !== "/gallery"),
+	{ label: "ギャラリー", url: "/gallery", icon: "paint" as IconName },
+];
 
 const pageCtx = createPublicPageContext({
 	Astro,
@@ -105,7 +111,10 @@ const barTitle = windowTitle ?? `${title} - ${BROWSER_NAME}`;
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<meta name="theme-color" content="#008080" />
+		<meta name="theme-color" content="#38615F" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Noto+Sans+JP:wght@400;600&display=swap" rel="stylesheet" />
 		<title>{fullTitle}</title>
 		{pageDescription && <meta name="description" content={pageDescription} />}
 		{canonical && <link rel="canonical" href={canonical} />}

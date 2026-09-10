@@ -39,7 +39,8 @@ const isCurrent = (url: string) => normalize(url) === currentPath;
 
 	<ul class="startmenu-list">
 		{
-			navItems.map((item) => (
+			// ギャラリーは上部バーの末尾に置き、スタートメニューは元の項目数を保つ。
+			navItems.filter((item) => normalize(item.url) !== "/gallery").map((item) => (
 				<li>
 					<a
 						href={item.url}

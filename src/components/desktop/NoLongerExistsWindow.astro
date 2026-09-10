@@ -1,55 +1,39 @@
 ---
 import Window from "../Window.astro";
-import Icon from "../Icon.astro";
-
-/**
- * 「The world you were born in no longer exists」のダイアログが連打されて
- * 重なっている飾り窓。タイトルバーで文が始まり、本文で言い切る。
- * ダイアログは窓の中に絶対配置しているので、外のグリッドには影響しない。
- */
 
 interface Props {
-	message?: string;
-	count?: number;
-	col?: 1 | 2;
-	row?: number;
+ message?: string;
+ col?: 1 | 2;
+ row?: number;
 }
-
-const {
-	message = "no longer exists",
-	count = 5,
-	col = 1,
-	row = 26,
-} = Astro.props;
-
-const dialogs = Array.from({ length: count }, (_, i) => i);
+const { message = "no longer exists", col = 1, row = 24 } = Astro.props;
 ---
 
 <Window
-	id="nolongerexists"
-	class="area-nolongerexists"
-	icon="warning"
-	title="The world you were born in"
-	bodyClass="win-body-face"
-	col={col}
-	row={row}
-	fit
+ id="nolongerexists"
+ class="area-nolongerexists"
+ title="The world you were born in"
+ icon="warning"
+ bodyClass="win-body-face"
+ col={col}
+ row={row}
 >
-	<div class="cascade">
-		{
-			dialogs.map((i) => (
-				<div class="cascade-dialog" style={`--i:${i}`} aria-hidden={i < count - 1}>
-					<div class="cascade-titlebar">
-						<Icon name="warning" size={12} />
-						<span class="cascade-title">The world you were born in</span>
-						<span class="cascade-close">✕</span>
-					</div>
-					<div class="cascade-body">
-						<p class="cascade-message">{message}</p>
-						<span class="cascade-ok">OK</span>
-					</div>
-				</div>
-			))
-		}
-	</div>
+ <div class="world-dialog">
+  <p>{message}</p>
+  <button type="button" class="btn" data-window-action="close">OK</button>
+ </div>
 </Window>
+
+<style>
+ .world-dialog {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  gap: 16px;
+  padding: 12px 0;
+ }
+ .world-dialog p { margin: 0; font-size: 14px; font-weight: 700; text-align: center; }
+ .world-dialog .btn { min-width: 75px; }
+</style>

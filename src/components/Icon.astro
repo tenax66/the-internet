@@ -246,4 +246,71 @@ const { name, size = 16, class: className, title } = Astro.props;
 			</g>
 		)
 	}
+	{
+		name === "power" && (
+			<g fill="none" stroke="#000080" stroke-width="2">
+				<path d="M8 1v7" />
+				<path d="M4 3a6 6 0 1 0 8 0" />
+			</g>
+		)
+	}
+	{
+		name === "play" && <path d="M5 3l7 5-7 5z" fill="#008000" stroke="#000" />
+	}
+	{
+		name === "pause" && (
+			<g fill="#000080" stroke="#000">
+				<rect x="4" y="3" width="3" height="10" />
+				<rect x="9" y="3" width="3" height="10" />
+			</g>
+		)
+	}
+	{
+		name === "volume" && (
+			<g fill="none" stroke="#000" stroke-width="1.5">
+				<path d="M2 6h3l4-3v10l-4-3H2z" fill="#ffd75e" />
+				<path d="M11 5c2 2 2 4 0 6M13 3c3 3 3 7 0 10" />
+			</g>
+		)
+	}
+	{
+		name === "volume-off" && (
+			<g fill="none" stroke="#000" stroke-width="1.5">
+				<path d="M2 6h3l4-3v10l-4-3H2z" fill="#ffd75e" />
+				<path d="M11 5l4 6M15 5l-4 6" stroke="#c81e1e" />
+			</g>
+		)
+	}
+	{
+		name === "tempo" && (
+			<g fill="none" stroke="#000" stroke-width="1">
+				<circle cx="8" cy="8" r="6" fill="#c0c0c0" />
+				<path d="M8 8l3-3M4 11h8M5 4l-1-2M11 4l1-2" />
+			</g>
+		)
+	}
+	{
+		name === "evolve" && (
+			<g fill="none" stroke="#000080" stroke-width="1.5">
+				<path d="M3 5a5 5 0 0 1 8-1l2 2M13 11a5 5 0 0 1-8 1l-2-2" />
+				<path d="M11 2v4h4M5 14v-4H1" />
+			</g>
+		)
+	}
+	{
+		name === "kick" && <circle cx="8" cy="8" r="5" fill="#c81e1e" stroke="#000" />
+	}
+	{
+		name === "hat" && <path d="M2 6h12M4 9h8M6 12h4" stroke="#000" stroke-width="2" />
+	}
+	{
+		name === "clap" && <path d="M3 10l2-6 2 1-1 4 1-7 2 .3-.5 6 1-6 2 .5-.7 6 1-5 2 .8-1.5 6-2 3H6z" fill="#ffd75e" stroke="#000" />
+	}
+	{
+		name === "bass" && (
+			<g fill="none" stroke="#000" stroke-width="1.5">
+				<path d="M3 3v8a3 3 0 0 0 6 0V3M9 5h4M11 5v8" />
+			</g>
+		)
+	}
 </svg>

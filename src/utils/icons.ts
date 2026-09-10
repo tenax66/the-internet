@@ -24,4 +24,15 @@ export type IconName =
 	| "chip"
 	| "mail"
 	| "dos"
-	| "cards";
+	| "cards"
+	| "power"
+	| "play"
+	| "pause"
+	| "volume"
+	| "volume-off"
+	| "tempo"
+	| "evolve"
+	| "kick"
+	| "hat"
+	| "clap"
+	| "bass";

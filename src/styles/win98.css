@@ -694,7 +694,7 @@ button.taskbar-start {
 /* ---------------------------------------------------- アイコン表示 (大アイコン) */
 
 /*
- * マイ コンピュータ / コントロール パネルの中身。
+ * マイ コンピュータの中身。
  * auto-fill にしてあるので、窓が細いと 2 列、広いと 4 列と勝手に変わる。
  */
 .iconview {
@@ -1073,119 +1073,6 @@ button.taskbar-start {
 	position: absolute;
 	top: var(--y);
 	left: 0;
-}
-
-/* -------------------------------------------- カスケードするダイアログ */
-
-/*
- * 「The world you were born in / no longer exists」が連打されて重なっている飾り。
- * 窓のクライアント領域を基準に絶対配置しているので、外のグリッドには響かない。
- */
-/*
- * ダイアログは絶対配置なので、重なった分の幅と高さをここで確保しておく。
- * 窓が広いときに左に寄って見えないよう、中央に置く。
- */
-.cascade {
-	--cascade-step: 13px;
-	--cascade-w: 204px;
-
-	position: relative;
-	width: 258px;
-	max-width: 100%;
-	min-height: 142px;
-	margin: 0 auto;
-}
-
-/*
- * 窓が細いとき（スマートフォンの 2 列）は、ずらし幅とダイアログの幅を詰める。
- * ダイアログは絶対配置なので、はみ出すと窓の外まで飛び出してしまう。
- */
-@media (max-width: 639px) {
-	.cascade {
-		--cascade-step: 8px;
-		--cascade-w: calc(100% - 4 * var(--cascade-step));
-	}
-}
-
-.cascade-dialog {
-	position: absolute;
-	top: calc(var(--i) * var(--cascade-step));
-	left: calc(var(--i) * var(--cascade-step));
-	z-index: var(--i);
-	width: var(--cascade-w);
-	padding: 3px;
-	background: var(--w-face);
-	box-shadow:
-		inset -1px -1px 0 0 var(--w-dark),
-		inset 1px 1px 0 0 var(--w-white),
-		inset -2px -2px 0 0 var(--w-shadow),
-		inset 2px 2px 0 0 var(--w-face-light);
-}
-
-.cascade-titlebar {
-	display: flex;
-	align-items: center;
-	gap: 3px;
-	padding: 2px 2px 2px 3px;
-	background: linear-gradient(
-		90deg,
-		var(--w-title-active-1),
-		var(--w-title-active-2)
-	);
-	color: var(--w-title-text);
-}
-
-.cascade-title {
-	flex: 1 1 auto;
-	min-width: 0;
-	font-size: 10px;
-	font-weight: 700;
-	white-space: nowrap;
-	overflow: hidden;
-}
-
-.cascade-close {
-	flex: none;
-	display: grid;
-	place-items: center;
-	width: 13px;
-	height: 12px;
-	font-size: 8px;
-	color: var(--w-dark);
-	background: var(--w-face);
-	box-shadow:
-		inset -1px -1px 0 0 var(--w-dark),
-		inset 1px 1px 0 0 var(--w-white),
-		inset -2px -2px 0 0 var(--w-shadow),
-		inset 2px 2px 0 0 var(--w-face-light);
-}
-
-.cascade-body {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 6px;
-	padding: 10px 8px 8px;
-}
-
-.cascade-message {
-	margin: 0;
-	font-size: 12px;
-	font-weight: 700;
-}
-
-.cascade-ok {
-	display: grid;
-	place-items: center;
-	width: 56px;
-	height: 18px;
-	font-size: 11px;
-	background: var(--w-face);
-	box-shadow:
-		inset -1px -1px 0 0 var(--w-dark),
-		inset 1px 1px 0 0 var(--w-white),
-		inset -2px -2px 0 0 var(--w-shadow),
-		inset 2px 2px 0 0 var(--w-face-light);
 }
 
 /* ------------------------------------------------------------ 記事カード */

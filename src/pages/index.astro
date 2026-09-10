@@ -10,9 +10,9 @@ import { PortableText } from "emdash/ui";
 import Base from "../layouts/Base.astro";
 import Window from "../components/Window.astro";
 import Icon from "../components/Icon.astro";
-import PixelArt from "../components/PixelArt.astro";
+import Television from "../components/widgets/Television.astro";
+import { getGallery, galleryImage } from "../utils/gallery";
 import MyComputerWindow from "../components/desktop/MyComputerWindow.astro";
-import ControlPanelWindow from "../components/desktop/ControlPanelWindow.astro";
 import NotepadWindow from "../components/desktop/NotepadWindow.astro";
 import LinksWindow from "../components/desktop/LinksWindow.astro";
 import MediaPlayerWindow from "../components/desktop/MediaPlayerWindow.astro";
@@ -27,7 +27,7 @@ import {
 const { entries: posts, cacheHint } = await getEmDashCollection("posts", {
 	orderBy: { published_at: "desc" },
 });
-if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
+
 
 const { siteTitle, siteTagline } = resolveStarterSiteIdentity(
 	await getSiteSettings(),
@@ -37,16 +37,17 @@ const { siteTitle, siteTagline } = resolveStarterSiteIdentity(
 const { entry: about } = await getEmDashEntry("pages", "about");
 
 /** マイ コンピュータ窓のページ数と、システムのプロパティ窓のカウント用 */
-const { entries: pages } = await getEmDashCollection("pages");
+const { entries: pages, cacheHint: pagesCacheHint } = await getEmDashCollection("pages");
+const sortedPages = [...pages].sort((a, b) => String(a.data.title).localeCompare(String(b.data.title), "ja"));
+const { entries: artwork, cacheHint: galleryCacheHint } = await getGallery(undefined, 1);
+const latestArt = artwork[0]?.data.image;
+if (Astro.cache?.enabled) Astro.cache.set({ tags: [...(cacheHint.tags ?? []), ...(pagesCacheHint.tags ?? []), ...(galleryCacheHint.tags ?? [])] });
 
 /*
- * タグ / カテゴリはタクソノミが未定義だと投げるので、無ければ空扱いにする。
- * （コントロール パネル窓とマイ コンピュータ窓はどちらも空なら中身を出さない）
+ * カテゴリはタクソノミが未定義だと投げるので、無ければ空扱いにする。
+ * （マイ コンピュータ窓は空なら中身を出さない）
  */
-const [tags, categories] = await Promise.all([
-	getTaxonomyTerms("tag").catch(() => []),
-	getTaxonomyTerms("category").catch(() => []),
-]);
+const categories = await getTaxonomyTerms("category").catch(() => []);
 
 const recent = posts.slice(0, 8);
 const tagsByEntry = await getTermsForEntries(
@@ -91,10 +92,10 @@ const notepadRow = clampRow(9 + changelog.length * 3, 13, 33);
 	 *
 	 * 窓は .desktop-grid の直下に並べる。並び順 = スマートフォンでの流し込み順
 	 * （左の段を上から埋めて右の段へ）なので、大事なものから書く。広い画面での
-	 * 配置は各窓の col / row（grid の span）と grid-auto-flow: dense に任せる。
-	 * 看板（area-main）だけはどの幅でも全幅で 1 行に置く。
+	 * 配置は各窓の col / row と、広い画面用の公開サイトに合わせた配置で決める。
+	 * 看板は広い画面では左半分、スマートフォンでは全幅に置く。
 	 */}
-	<div class="desktop-grid">
+	<div class="desktop-grid classic-desktop" style={`--posts-rows:${postsRow};--notepad-rows:${notepadRow}`}>
 		{/* ---------------------------------------------- 看板ウィンドウ */}
 		<Window
 			id="main"
@@ -193,15 +194,12 @@ const notepadRow = clampRow(9 + changelog.length * 3, 13, 33);
 			row={27}
 		/>
 
-		{/* ---------------------------------------- コントロール パネル */}
-		<ControlPanelWindow tags={tags} col={1} row={19} />
-
 		{/* -------------------------------------------------- ドット絵 */}
 		<Window
 			id="paint"
 			class="area-paint"
 			icon="paint"
-			title="drive_my_car.bmp - ペイント"
+			title="ギャラリー - ペイント"
 			bodyClass="win-body-face"
 			col={1}
 			row={50}
@@ -212,13 +210,20 @@ const notepadRow = clampRow(9 + changelog.length * 3, 13, 33);
 					{Array.from({ length: 16 }).map(() => <span class="paint-tool" />)}
 				</div>
 				<div class="paint-canvas">
-					<PixelArt />
+					{latestArt ? <a class="latest-art" href="/gallery"><img src={galleryImage(latestArt)} alt={latestArt.alt || "最新のドット絵。ギャラリーへ"} width={latestArt.width} height={latestArt.height} /></a> : <p>まだ画像がありません。</p>}
 				</div>
 			</div>
+			<Fragment slot="status"><a href="/gallery">過去のドット絵を見る →</a></Fragment>
 		</Window>
 
 		{/* -------------------------------------------------- 更新履歴 */}
 		<NotepadWindow entries={changelog} col={1} row={notepadRow} />
+
+		{/* -------------------------------------------------- ページ一覧 */}
+		<Window id="pages" class="area-pages" icon="document" title="ページ一覧" bodyClass="win-body-flush" col={1} row={18}>
+			{sortedPages.length === 0 ? <p class="listview-empty">まだページがありません。</p> : <div class="listview">{sortedPages.map(page => <a class="listview-row" href={`/${page.id}`}><Icon name="document" class="listview-icon" /><span class="listview-name">{page.data.title}</span></a>)}</div>}
+			<Fragment slot="status"><a href="/pages">ページ一覧を開く</a><span>{pages.length} 個</span></Fragment>
+		</Window>
 
 		{/* -------------------------------------------------- ソリティア */}
 		<SolitaireWindow col={1} row={25} />
@@ -230,5 +235,8 @@ const notepadRow = clampRow(9 + changelog.length * 3, 13, 33);
 		<NoLongerExistsWindow col={1} row={24} />
 		<MediaPlayerWindow col={1} row={24} />
 		<CommandPromptWindow col={1} row={32} />
+		<Window id="television" class="area-tv" icon="media" title="テレビ" bodyClass="win-body-face" col={1} row={55} fit>
+			<Television headlines={recent.map(post => post.data.title)} />
+		</Window>
 	</div>
 </Base>

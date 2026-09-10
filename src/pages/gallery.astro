@@ -1,0 +1,40 @@
+---
+import Base from "../layouts/Base.astro";
+import { getGallery, galleryImage } from "../utils/gallery";
+const cursor = Astro.url.searchParams.get("cursor") || undefined;
+const { entries, nextCursor, error } = await getGallery(cursor);
+---
+<Base title="ギャラリー" windowTitle="ギャラリー - 画像ビューア" windowIcon="paint" status="画像を選ぶと拡大します">
+	<div class="gallery-grid">
+		{entries.map(({ data }) => (
+			<a href={galleryImage(data.image)} class="gallery-item" data-gallery-image>
+				<img src={galleryImage(data.image)} alt={data.image?.alt || "ドット絵を拡大"} width={data.image?.width} height={data.image?.height} loading="lazy" />
+			</a>
+		))}
+	</div>
+	{entries.length === 0 && <p>{error ? "画像を読み込めませんでした。時間をおいて再度お試しください。" : "まだ画像がありません。"}</p>}
+	<div class="row">
+		{cursor && <a class="btn" href="/gallery">最初のページ</a>}
+		{nextCursor && <a class="btn" href={`/gallery?cursor=${encodeURIComponent(nextCursor)}`}>以前の画像へ</a>}
+	</div>
+	<dialog class="gallery-dialog" aria-label="ドット絵の拡大表示">
+		<form method="dialog"><button class="btn" autofocus>閉じる</button></form>
+		<img alt="" />
+	</dialog>
+</Base>
+<script>
+	const dialog = document.querySelector<HTMLDialogElement>(".gallery-dialog");
+	const large = dialog?.querySelector("img");
+	if (dialog && large) {
+		document.querySelectorAll<HTMLAnchorElement>("[data-gallery-image]").forEach((link) => {
+			link.addEventListener("click", (event) => {
+				if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+				event.preventDefault();
+				large.src = link.href;
+				large.alt = link.querySelector("img")?.alt || "ドット絵";
+				dialog.showModal();
+			});
+		});
+		dialog.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); });
+	}
+</script>

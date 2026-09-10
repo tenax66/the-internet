@@ -15,7 +15,12 @@
       "slug": "posts",
       "label": "Posts",
       "labelSingular": "Post",
-      "supports": ["drafts", "revisions", "search", "seo"],
+      "supports": [
+        "drafts",
+        "revisions",
+        "search",
+        "seo"
+      ],
       "fields": [
         {
           "slug": "title",
@@ -47,7 +52,11 @@
       "label": "Pages",
       "labelSingular": "Page",
       "urlPattern": "/{slug}",
-      "supports": ["drafts", "revisions", "search"],
+      "supports": [
+        "drafts",
+        "revisions",
+        "search"
+      ],
       "fields": [
         {
           "slug": "title",
@@ -63,6 +72,23 @@
           "searchable": true
         }
       ]
+    },
+    {
+      "slug": "gallery",
+      "label": "ギャラリー",
+      "labelSingular": "ドット絵",
+      "supports": [
+        "drafts",
+        "revisions"
+      ],
+      "fields": [
+        {
+          "slug": "image",
+          "label": "画像",
+          "type": "image",
+          "required": true
+        }
+      ]
     }
   ],
   "taxonomies": [
@@ -71,7 +97,9 @@
       "label": "Categories",
       "labelSingular": "Category",
       "hierarchical": true,
-      "collections": ["posts"],
+      "collections": [
+        "posts"
+      ],
       "terms": [
         {
           "slug": "general",
@@ -88,7 +116,9 @@
       "label": "Tags",
       "labelSingular": "Tag",
       "hierarchical": false,
-      "collections": ["posts"],
+      "collections": [
+        "posts"
+      ],
       "terms": [
         {
           "slug": "starter",
@@ -224,8 +254,43 @@
           ]
         },
         "taxonomies": {
-          "category": ["general"],
-          "tag": ["starter", "example"]
+          "category": [
+            "general"
+          ],
+          "tag": [
+            "starter",
+            "example"
+          ]
+        }
+      }
+    ],
+    "gallery": [
+      {
+        "id": "gallery-sunset",
+        "slug": "sunset",
+        "status": "published",
+        "data": {
+          "image": {
+            "id": "gallery-sunset",
+            "src": "https://assets.internet.tanka.cc/gallery/sunset.svg",
+            "alt": "夕暮れの海沿いを走る車のドット絵",
+            "width": 280,
+            "height": 220
+          }
+        }
+      },
+      {
+        "id": "gallery-hills",
+        "slug": "hills",
+        "status": "published",
+        "data": {
+          "image": {
+            "id": "gallery-hills",
+            "src": "https://assets.internet.tanka.cc/gallery/hills.png",
+            "alt": "青空と白い雲、緑の丘のドット絵",
+            "width": 1920,
+            "height": 1080
+          }
         }
       }
     ]
