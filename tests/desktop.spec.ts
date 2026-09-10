@@ -6,9 +6,18 @@ test('desktop, gallery and TV controls', async ({ page }) => {
 	await page.setViewportSize({width:1440,height:1000});
 	await page.goto('/');
 	await expect(page.locator('[data-tv-image]')).toHaveAttribute('src', 'https://assets.internet.tanka.cc/broadcast/russian_monologue.gif');
+	await expect(page.locator('[data-window="latest"]')).toHaveAttribute('data-window-title', '最新');
+	await expect(page.locator('[data-window="latest"] .win-titlebar-badge')).toHaveText('New!');
+	await expect(page.locator('[data-window="latest"] .win-titlebar-badge')).toHaveCSS('animation-name', 'new-badge-blink');
+	await expect(page.locator('[data-window="latest"] article')).toBeVisible();
 	await expect(page.locator('[data-window="posts"]')).toBeVisible();
+	await expect(page.locator('[data-window="posts"]')).toHaveAttribute('data-window-title', '記事一覧');
 	await expect(page.locator('.latest-art img')).toHaveAttribute('src','https://assets.internet.tanka.cc/gallery/hills.png');
 	await expect(page.locator('[data-window="nolongerexists"]')).toBeVisible();
+	const worldBox = await page.locator('[data-window="nolongerexists"]').boundingBox();
+	const televisionBox = await page.locator('[data-window="television"]').boundingBox();
+	expect(televisionBox?.x).toBe(worldBox?.x);
+	expect(televisionBox?.y).toBe((worldBox?.y ?? 0) + (worldBox?.height ?? 0));
 	await page.screenshot({path:'tmp/desktop.png',fullPage:true});
 	await page.locator('[data-power]').click();
 	await expect(page.locator('.tv-off')).toBeVisible();

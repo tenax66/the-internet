@@ -17,6 +17,8 @@ interface Props {
 	/** タスクバーのボタンと結びつく ID */
 	id: string;
 	title: string;
+	/** タイトルの直後に表示する短いバッジ */
+	badge?: string;
 	icon?: IconName;
 	/** × ボタンを出すか（false なら無効表示） */
 	closable?: boolean;
@@ -42,6 +44,7 @@ interface Props {
 const {
 	id,
 	title,
+	badge,
 	icon = "document",
 	closable = true,
 	bodyClass,
@@ -69,7 +72,10 @@ const spanStyle = [
 >
 	<div class="win-titlebar">
 		<Icon name={icon} class="win-titlebar-icon" />
-		<span class="win-titlebar-text">{title}</span>
+		<span class="win-titlebar-text">
+			{title}
+			{badge && <span class="win-titlebar-badge">{badge}</span>}
+		</span>
 		<div class="win-controls">
 			<button
 				type="button"

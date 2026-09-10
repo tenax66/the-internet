@@ -8,6 +8,19 @@
 :where(button,
 a,
 input):focus-visible { outline: 3px solid #ab5200; outline-offset: 3px; }
+.win-titlebar-badge {
+	display: inline-block;
+	margin-left: 6px;
+	padding: 0 3px;
+	background: #800080;
+	box-shadow: 1px 1px 0 #000;
+	color: #ffff00;
+	font: 700 10px/14px var(--w-font-mono);
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	animation: new-badge-blink 1s steps(1, end) infinite;
+}
+@keyframes new-badge-blink { 50% { visibility: hidden; } }
 .prose { font-family: "Noto Sans JP", "Yu Gothic", sans-serif; font-size: 16px; line-height: 1.9; overflow-wrap: anywhere; }
 .win-content-narrow { max-width: 44em; margin-inline: auto; }
 .desktop-single { padding: 18px; }
@@ -59,7 +72,10 @@ input):focus-visible { outline: 3px solid #ab5200; outline-offset: 3px; }
 	.desktop-single { padding:8px; }
 	.tv-caption strong { font-size:14px; }
 }
-@media (prefers-reduced-motion:reduce) { .tv-footage { animation:none; } }
+@media (prefers-reduced-motion:reduce) {
+	.tv-footage,
+	.win-titlebar-badge { animation: none; }
+}
 @media (max-width:420px) {
 	.device-controls input[type="range"] { min-height:44px; }
 }
@@ -84,10 +100,11 @@ input):focus-visible { outline: 3px solid #ab5200; outline-offset: 3px; }
 
 /* Preserve the public desktop's four-column positions even with fewer posts. */
 @media (min-width: 1360px) {
-	.classic-desktop { grid-template-columns: repeat(4, minmax(0, 1fr)); --right-start: calc(var(--posts-rows) + 24); }
+	.classic-desktop { grid-template-columns: repeat(4, minmax(0, 1fr)); --right-start: calc(37 + var(--posts-rows) + 24); }
 	.classic-desktop > .area-main { grid-column: 1 / span 2; grid-row: 1 / span 37; }
-	.classic-desktop > .area-posts { grid-column: 3 / span 2; grid-row: 1 / span var(--posts-rows); }
-	.classic-desktop > .area-about { grid-column: 3 / span 2; grid-row: calc(var(--posts-rows) + 1) / span 23; }
+	.classic-desktop > .area-latest { grid-column: 3 / span 2; grid-row: 1 / span 37; }
+	.classic-desktop > .area-posts { grid-column: 3 / span 2; grid-row: 38 / span var(--posts-rows); }
+	.classic-desktop > .area-about { grid-column: 3 / span 2; grid-row: calc(38 + var(--posts-rows)) / span 23; }
 	.classic-desktop > .area-computer { grid-column: 1; grid-row: 38 / span 27; }
 	.classic-desktop > .area-pages { grid-column: 2; grid-row: 57 / span 18; }
 	.classic-desktop > .area-solitaire { grid-column: 2; grid-row: 75 / span 25; }
@@ -97,5 +114,5 @@ input):focus-visible { outline: 3px solid #ab5200; outline-offset: 3px; }
 	.classic-desktop > .area-notepad { grid-column: 4; grid-row: var(--right-start) / span var(--notepad-rows); }
 	.classic-desktop > .area-links { grid-column: 4; grid-row: calc(var(--right-start) + var(--notepad-rows)) / span 17; }
 	.classic-desktop > .area-player { grid-column: 4; grid-row: calc(var(--right-start) + var(--notepad-rows) + 17) / span var(--win-row); }
-	.classic-desktop > .area-tv { grid-column: 3; grid-row: calc(var(--right-start) + 50) / span 55; }
+	.classic-desktop > .area-tv { grid-column: 1; grid-row: 89 / span 55; }
 }

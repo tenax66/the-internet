@@ -6,7 +6,7 @@ import {
 	getTaxonomyTerms,
 	getTermsForEntries,
 } from "emdash";
-import { PortableText } from "emdash/ui";
+import { Image, PortableText } from "emdash/ui";
 import Base from "../layouts/Base.astro";
 import Window from "../components/Window.astro";
 import Icon from "../components/Icon.astro";
@@ -49,6 +49,7 @@ if (Astro.cache?.enabled) Astro.cache.set({ tags: [...(cacheHint.tags ?? []), ..
 const categories = await getTaxonomyTerms("category").catch(() => []);
 
 const recent = posts.slice(0, 8);
+const latestPost = posts[0];
 const tagsByEntry = await getTermsForEntries(
 	"posts",
 	recent.map((p) => p.data.id),
@@ -103,12 +104,58 @@ const postsRow = clampRow(11 + recent.length * 4, 15, 43);
 			</div>
 		</Window>
 
-		{/* -------------------------------------------------- 最新記事 */}
+		{/* ------------------------------------------------------ 最新 */}
+		<Window
+			id="latest"
+			class="area-latest"
+			icon="document"
+			title="最新"
+			badge="New!"
+			col={2}
+			row={37}
+		>
+			{
+				latestPost ? (
+					<article class="prose latest-post">
+						<header class="entry-head">
+							<h2>
+								<a href={`/posts/${latestPost.id}`}>{latestPost.data.title}</a>
+							</h2>
+							{latestPost.data.publishedAt && (
+								<p class="entry-meta">
+									<time datetime={latestPost.data.publishedAt.toISOString()}>
+										{dateFormat.format(latestPost.data.publishedAt)}
+									</time>
+								</p>
+							)}
+						</header>
+						{latestPost.data.featured_image && (
+							<figure class="entry-figure">
+								<Image image={latestPost.data.featured_image} width={960} />
+							</figure>
+						)}
+						<PortableText value={latestPost.data.content} />
+					</article>
+				) : (
+					<p>
+						まだ記事がありません。
+						<a href="/_emdash/admin/content/posts/new">1 本目を書く</a>
+					</p>
+				)
+			}
+			{latestPost && (
+				<Fragment slot="status">
+					<a href={`/posts/${latestPost.id}`}>この記事を開く</a>
+				</Fragment>
+			)}
+		</Window>
+
+		{/* -------------------------------------------------- 記事一覧 */}
 		<Window
 			id="posts"
 			class="area-posts"
 			icon="folder-open"
-			title="最新記事"
+			title="記事一覧"
 			bodyClass="win-body-flush"
 			col={2}
 			row={postsRow}
