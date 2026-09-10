@@ -13,10 +13,8 @@ import Icon from "../components/Icon.astro";
 import Television from "../components/widgets/Television.astro";
 import { getGallery, galleryImage } from "../utils/gallery";
 import MyComputerWindow from "../components/desktop/MyComputerWindow.astro";
-import NotepadWindow from "../components/desktop/NotepadWindow.astro";
 import LinksWindow from "../components/desktop/LinksWindow.astro";
 import MediaPlayerWindow from "../components/desktop/MediaPlayerWindow.astro";
-import CommandPromptWindow from "../components/desktop/CommandPromptWindow.astro";
 import SolitaireWindow from "../components/desktop/SolitaireWindow.astro";
 import NoLongerExistsWindow from "../components/desktop/NoLongerExistsWindow.astro";
 import {
@@ -57,13 +55,6 @@ const tagsByEntry = await getTermsForEntries(
 	"tag",
 );
 
-/** メモ帳（更新履歴）に流し込む行 */
-const changelog = posts.slice(0, 12).map((p) => ({
-	title: p.data.title,
-	href: `/posts/${p.id}`,
-	date: p.data.publishedAt ?? null,
-}));
-
 /** 「お気に入り」窓に出す外部リンク。ここを書き換えれば中身が変わる */
 const favorites = [
 	{ label: "Internet Archive", url: "https://archive.org/", note: "web" },
@@ -84,7 +75,6 @@ const dateFormat = new Intl.DateTimeFormat("ja-JP", {
 const clampRow = (n: number, min: number, max: number) =>
 	Math.max(min, Math.min(max, n));
 const postsRow = clampRow(11 + recent.length * 4, 15, 43);
-const notepadRow = clampRow(9 + changelog.length * 3, 13, 33);
 ---
 
 <Base title={siteTitle} description={siteTagline} chrome="desktop">
@@ -96,7 +86,7 @@ const notepadRow = clampRow(9 + changelog.length * 3, 13, 33);
 	 * 配置は各窓の col / row と、広い画面用の公開サイトに合わせた配置で決める。
 	 * 看板は広い画面では左半分、スマートフォンでは全幅に置く。
 	 */}
-	<div class="desktop-grid classic-desktop" style={`--posts-rows:${postsRow};--notepad-rows:${notepadRow}`}>
+	<div class="desktop-grid classic-desktop" style={`--posts-rows:${postsRow}`}>
 		{/* ---------------------------------------------- 看板ウィンドウ */}
 		<Window
 			id="main"
@@ -217,9 +207,6 @@ const notepadRow = clampRow(9 + changelog.length * 3, 13, 33);
 			<Fragment slot="status"><a href="/gallery">過去のドット絵を見る →</a></Fragment>
 		</Window>
 
-		{/* -------------------------------------------------- 更新履歴 */}
-		<NotepadWindow entries={changelog} col={1} row={notepadRow} />
-
 		{/* -------------------------------------------------- ページ一覧 */}
 		<Window id="pages" class="area-pages" icon="document" title="ページ一覧" bodyClass="win-body-flush" col={1} row={18}>
 			{sortedPages.length === 0 ? <p class="listview-empty">まだページがありません。</p> : <div class="listview">{sortedPages.map(page => <a class="listview-row" href={`/${page.id}`}><Icon name="document" class="listview-icon" /><span class="listview-name">{page.data.title}</span></a>)}</div>}
@@ -235,7 +222,6 @@ const notepadRow = clampRow(9 + changelog.length * 3, 13, 33);
 		{/* ------------------------------------------------- 飾りの窓たち */}
 		<NoLongerExistsWindow col={1} row={24} />
 		<MediaPlayerWindow col={1} row={24} />
-		<CommandPromptWindow col={1} row={32} />
 		<Window id="television" class="area-tv" icon="media" title="テレビ" bodyClass="win-body-face" col={1} row={55} fit>
 			<Television headlines={recent.map(post => post.data.title)} />
 		</Window>
