@@ -45,9 +45,6 @@ const dateFormat = new Intl.DateTimeFormat("ja-JP", {
 	canonical={seo.canonical}
 	image={seo.ogImage}
 	content={{ collection: "posts", id: post.data.id, slug }}
-	windowTitle={`${post.data.title} - メモ帳`}
-	windowIcon="document"
-	status="ページが表示されました"
 	narrow
 >
 	<article class="prose">

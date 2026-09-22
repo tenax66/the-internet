@@ -1,55 +1,64 @@
 import { test, expect } from '@playwright/test';
 
-test('desktop, gallery and TV controls', async ({ page }) => {
-	const errors: string[] = [];
-	page.on('pageerror', error => errors.push(error.message));
-	await page.setViewportSize({width:1440,height:1000});
-	await page.goto('/');
-	await expect(page.locator('[data-tv-image]')).toHaveAttribute('src', 'https://assets.internet.tanka.cc/broadcast/russian_monologue.gif');
-	await expect(page.locator('[data-window="latest"]')).toHaveAttribute('data-window-title', '最新');
-	await expect(page.locator('[data-window="latest"] .win-titlebar-badge')).toHaveText('New!');
-	await expect(page.locator('[data-window="latest"] .win-titlebar-badge')).toHaveCSS('animation-name', 'new-badge-blink');
-	await expect(page.locator('[data-window="latest"] article')).toBeVisible();
-	await expect(page.locator('[data-window="posts"]')).toBeVisible();
-	await expect(page.locator('[data-window="posts"]')).toHaveAttribute('data-window-title', '記事一覧');
-	await expect(page.locator('.latest-art img')).toHaveAttribute('src','https://assets.internet.tanka.cc/gallery/hills.png');
-	await expect(page.locator('[data-window="nolongerexists"]')).toBeVisible();
-	const worldBox = await page.locator('[data-window="nolongerexists"]').boundingBox();
-	const televisionBox = await page.locator('[data-window="television"]').boundingBox();
-	expect(televisionBox?.x).toBe(worldBox?.x);
-	expect(televisionBox?.y).toBe((worldBox?.y ?? 0) + (worldBox?.height ?? 0));
-	await page.screenshot({path:'tmp/desktop.png',fullPage:true});
-	await page.locator('[data-power]').click();
-	await expect(page.locator('.tv-off')).toBeVisible();
-	await page.locator('[data-power]').click();
-	await page.goto('/gallery');
-	await expect(page.locator('[data-gallery-image]')).toHaveCount(2);
-	await page.locator('[data-gallery-image]').first().click();
-	await expect(page.locator('dialog')).toBeVisible();
-	await page.keyboard.press('Escape');
-	await expect(page.locator('dialog')).not.toBeVisible();
-	expect(errors).toEqual([]);
+test('teletext index, article navigation and gallery', async ({ page }) => {
+ const errors: string[] = [];
+ page.on('pageerror', error => errors.push(error.message));
+ await page.setViewportSize({width:1440,height:1000});
+ await page.goto('/');
+ await expect(page.locator('.index-panel')).toBeVisible();
+ await expect(page.locator('.latest-panel')).toBeVisible();
+ const directoryPaths = await page.locator('.directory-links a, .category-links a').evaluateAll(links => links.map(link => link.getAttribute('href')!));
+ await expect(page.locator('body')).toHaveCSS('color', 'rgb(18, 53, 114)');
+ await expect(page.locator('[data-media-player], [data-tv-image], [data-solitaire], .taskbar')).toHaveCount(0);
+ await page.screenshot({path:'tmp/teletext-desktop.png',fullPage:true});
+ const latest = page.locator('.latest-list a').first();
+ if (await latest.count()) {
+  const title = await latest.locator('span').last().textContent();
+  await latest.click();
+  await expect(page.locator('article h1')).toHaveText(title!);
+  await expect(page.locator('.reading-panel')).toBeVisible();
+  await page.screenshot({path:'tmp/teletext-article.png',fullPage:true});
+ }
+ for (const url of ['/posts','/pages','/gallery','/404', ...directoryPaths]) {
+  await page.goto(url);
+  await expect(page.locator('main')).toBeVisible();
+  await expect(page.locator('vite-error-overlay')).toHaveCount(0);
+ }
+ await page.goto('/gallery');
+ const picture = page.locator('[data-gallery-image]').first();
+ if(await picture.count()) {
+  await picture.click();
+  await expect(page.locator('dialog')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('dialog')).not.toBeVisible();
+ }
+ expect(errors).toEqual([]);
 });
 
-test('mobile and reduced motion', async ({ page }) => {
-	await page.emulateMedia({reducedMotion:'reduce'});
-	for (const width of [375,320,768]) {
-		await page.setViewportSize({width,height:900});
-		await page.goto('/');
-		expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-		await expect(page.locator('[data-tv-status]')).toHaveText('静止中');
-		await expect(page.locator('[data-media-player]')).toHaveCount(1);
-		if (width === 375) await page.screenshot({path:'tmp/mobile.png',fullPage:true});
-	}
+test('all main pages fit mobile and tablet', async ({ page }) => {
+ await page.emulateMedia({reducedMotion:'reduce'});
+ for (const width of [320,375,768]) {
+  await page.setViewportSize({width,height:900});
+  for(const url of ['/','/posts','/pages','/gallery','/404']) {
+   await page.goto(url);
+   await expect(page.locator('main')).toBeVisible();
+   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `${url} at ${width}px`).toBe(true);
+   if(width === 375 && url === '/') await page.screenshot({path:'tmp/teletext-mobile.png',fullPage:true});
+  }
+ }
 });
 
-test('images and content remain available without JavaScript', async ({ browser }) => {
-	const context = await browser.newContext({javaScriptEnabled:false});
-	const page = await context.newPage();
-	await page.goto('http://localhost:4321/');
-	await expect(page.locator('[data-window="posts"] a').first()).toBeVisible();
-	await page.goto('http://localhost:4321/gallery');
-	await page.locator('[data-gallery-image]').first().click();
-	await expect(page).toHaveURL('https://assets.internet.tanka.cc/gallery/hills.png');
-	await context.close();
+test('navigation and images work without JavaScript', async ({ browser }) => {
+ const context = await browser.newContext({javaScriptEnabled:false});
+ const page = await context.newPage();
+ await page.goto('http://localhost:4321/');
+ await page.locator('.index-links a[href="/posts"]').click();
+ await expect(page.locator('.section-banner')).toContainText('ARCHIVE');
+ await page.goto('http://localhost:4321/gallery');
+ const picture = page.locator('[data-gallery-image]').first();
+ if(await picture.count()) {
+  await expect(picture).toHaveAttribute('href', /^https?:\/\//);
+  await expect(picture.locator('img')).toBeVisible();
+ }
+ await context.close();
 });

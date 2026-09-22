@@ -1,7 +1,6 @@
 ---
 import { getEmDashCollection } from "emdash";
 import Base from "../../layouts/Base.astro";
-import Icon from "../../components/Icon.astro";
 
 // 固定ページの一覧。/:slug で個別ページに飛ぶ
 const { entries: pages, cacheHint } = await getEmDashCollection("pages", {});
@@ -15,24 +14,28 @@ const sorted = [...pages].sort((a, b) =>
 <Base
 	title="ページ一覧"
 	description="このサイトの固定ページ一覧"
-	windowTitle="ページ一覧 - エクスプローラ"
-	windowIcon="folder-open"
 	status={`${pages.length} 個のオブジェクト`}
 >
 	{
 		sorted.length === 0 ? (
 			<p class="listview-empty">まだページがありません。</p>
 		) : (
-			<div class="listview">
+			<ul class="post-grid page-grid">
 				{sorted.map((page) => (
-					<a class="listview-row" href={`/${page.id}`}>
-						<Icon name="document" class="listview-icon" />
-						<span class="listview-name">{page.data.title}</span>
-						<span class="listview-meta">ページ</span>
-						<span class="listview-meta listview-meta-extra">/{page.id}</span>
-					</a>
+					<li class="post-card page-card">
+						<a class="post-card-media post-card-media-empty page-card-media" href={`/${page.id}`} tabindex="-1" aria-hidden="true">
+							<svg class="page-card-icon" viewBox="0 0 16 16" aria-hidden="true" shape-rendering="crispEdges" fill="currentColor">
+								<path fill-rule="evenodd" d="M1 3h5l2 2h7v10H1zM3 7v6h10V7H7L5 5H3z" />
+								<path d="M4 9h8v1H4zm0 2h6v1H4z" />
+							</svg>
+						</a>
+						<div class="post-card-body">
+							<h2 class="post-card-title"><a href={`/${page.id}`}>{page.data.title}</a></h2>
+							<p class="post-card-meta">/{page.id}</p>
+						</div>
+					</li>
 				))}
-			</div>
+			</ul>
 		)
 	}
 </Base>

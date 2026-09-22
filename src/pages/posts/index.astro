@@ -23,8 +23,6 @@ const items = posts.map((post) => ({
 <Base
 	title="記事一覧"
 	description="これまでに書いた記事の一覧"
-	windowTitle="記事一覧 - エクスプローラ"
-	windowIcon="folder-open"
 	status={`${posts.length} 個のオブジェクト`}
 >
 	<PostList items={items} emptyMessage="まだ記事がありません。" />

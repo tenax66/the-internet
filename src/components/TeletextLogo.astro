@@ -1,0 +1,16 @@
+---
+interface Props { label?: string }
+const { label = 'THE INTERNET' } = Astro.props;
+const glyphs: Record<string, string[]> = {
+ T:['11111','11111','00100','00100','00100','00100','00100'],
+ H:['11011','11011','11011','11111','11011','11011','11011'],
+ E:['11111','11111','11000','11110','11000','11111','11111'],
+ I:['11111','11111','01110','01110','01110','11111','11111'],
+ N:['11001','11101','11101','11111','10111','10111','10011'],
+ R:['11110','11011','11011','11110','11100','11010','11011'],
+};
+---
+<svg class="teletext-logo" viewBox="0 0 71 7" role="img" aria-label={label} shape-rendering="crispEdges">
+ <title>{label}</title>
+ {Array.from('THE INTERNET').flatMap((letter, i) => (glyphs[letter] ?? []).flatMap((row,y) => Array.from(row).map((cell,x) => cell === '1' && <rect x={i*6+x} y={y} width="1" height="1" fill="currentColor" />)))}
+</svg>

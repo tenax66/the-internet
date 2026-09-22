@@ -1,7 +1,7 @@
 # the-internet
 
 個人サイト。EmDash（Astro + Cloudflare Workers）製。
-90 年代デスクトップ環境を思わせるレトロ UI で、記事・ページ・タグ / カテゴリを表示する。
+Minitel / テレテキスト風の UI で、記事・ページ・タグ / カテゴリ・ギャラリーを表示する。
 
 ```bash
 npm install
@@ -39,15 +39,13 @@ npm run deploy     # astro build && wrangler deploy
 ```
 src/
   components/
-    Window.astro          ウィンドウ枠（タイトルバー / メニュー / ステータス）
-    Taskbar.astro         下部タスクバーとスタートメニュー
-    Icon.astro            16px ピクセルアイコン集（SVG インライン）
-    desktop/              トップページに並べる飾り窓
-  layouts/Base.astro      共通レイアウト。chrome="desktop" | "window" で切り替え
+    TeletextLogo.astro     ピクセル文字のサイトロゴ
+    TeletextGlobe.astro    地球のドット絵
+    PostList.astro         番号付き記事一覧
+  layouts/Base.astro      共通ヘッダー・ナビゲーション・誌面枠
   pages/                  ルーティング
-  scripts/desktop.ts      ウィンドウの開閉 / 最小化 / 前面化
-  styles/win98.css        レトロ UI のデザインシステム
-  utils/site-identity.ts  サイト名・タグライン・ブラウザ表示名
+  styles/teletext.css      配色・レイアウト・レスポンシブ対応
+  utils/site-identity.ts  CMS のサイト名・タグライン
 ```
 
 ## メモ
@@ -61,10 +59,13 @@ src/
 
 ## デザインについて
 
-UI は 90 年代のデスクトップ環境全般へのオマージュであり、
-特定企業の製品・ロゴ・商標を模したものではない。
-タイトルバーに出るブラウザ名は `src/utils/site-identity.ts` の
-`BROWSER_NAME` で定義した架空の名前。
+添付コンセプトのアイボリー地、ネイビーの罫線、コバルト・シアン・黄・緑・マゼンタの
+配色を採用。トップは番号付き目次と記事・ギャラリー・ディレクトリ、下層は共通の誌面枠を使う。
+旧デスクトップの音楽・テレビ・ソリティアは公開ページから取り外している。
+旧コンポーネントとスタイルは残っているが、新レイアウトでは読み込まない。
+
+`npm run test:e2e` で主要ページの表示・記事リンク・ギャラリー拡大・モバイル幅を確認できる。
+開発サーバーを起動して実行する。
 
 ## クレジット
 

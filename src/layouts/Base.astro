@@ -2,16 +2,9 @@
 import { getMenu, getSiteSettings } from "emdash";
 import { EmDashHead, EmDashBodyStart, EmDashBodyEnd } from "emdash/ui";
 import { createPublicPageContext } from "emdash/page";
-import Taskbar from "../components/Taskbar.astro";
-import Window from "../components/Window.astro";
-import type { IconName } from "../utils/icons";
-import {
-	BROWSER_NAME,
-	resolveStarterSiteIdentity,
-} from "../utils/site-identity";
-import "../styles/win98.css";
-import "../styles/renewal.css";
-import "../styles/hardware.css";
+import TeletextLogo from "../components/TeletextLogo.astro";
+import { resolveStarterSiteIdentity } from "../utils/site-identity";
+import "../styles/teletext.css";
 
 interface Props {
 	title: string;
@@ -21,18 +14,9 @@ interface Props {
 	canonical?: string | null;
 	/** Pass content reference for plugin page contributions on content pages */
 	content?: { collection: string; id: string; slug?: string | null };
-	/**
-	 * desktop = 中身を自分でウィンドウに分けて並べる（トップページだけ）
-	 * window  = 中身を画面いっぱいの 1 枚のウィンドウで包む（記事・一覧など）
-	 */
-	chrome?: "desktop" | "window";
-	/** chrome="window" のときタイトルバーに出す文字。既定は `title - ${BROWSER_NAME}` */
-	windowTitle?: string;
-	windowIcon?: IconName;
-	/** ステータスバー左のテキスト */
+	/** トップの複数パネル、または下層の読み物レイアウト */
+	layout?: "home" | "page";
 	status?: string;
-	/** ステータスバー右のテキスト */
-	statusExtra?: string;
 	/** 本文を読みやすい幅で中央寄せする（記事・固定ページ向け） */
 	narrow?: boolean;
 }
@@ -44,11 +28,8 @@ const {
 	image,
 	canonical,
 	content,
-	chrome = "window",
-	windowTitle,
-	windowIcon = "browser",
-	status = "ページが表示されました",
-	statusExtra = "インターネット",
+	layout = "page",
+	status = "",
 	narrow = false,
 } = Astro.props;
 
@@ -60,6 +41,9 @@ const pageDescription = description ?? siteTagline;
 
 const menu = await getMenu("primary");
 const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/";
+const hidePanelBrand = ["/posts", "/pages", "/about", "/gallery"].includes(currentPath)
+	|| currentPath.startsWith("/posts/")
+	|| (/^\/[^/]+$/.test(currentPath) && !["/gallery", "/404"].includes(currentPath));
 
 /*
  * 画面上部のバーに並べるナビ。
@@ -68,26 +52,25 @@ const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/";
  */
 const normalizeUrl = (url: string) => url.replace(/\/$/, "") || "/";
 
-const builtinNav: { label: string; url: string; icon: IconName }[] = [
-	{ label: "ホーム", url: "/", icon: "home" },
-	{ label: "記事一覧", url: "/posts", icon: "folder" },
-	{ label: "ページ一覧", url: "/pages", icon: "document" },
+const builtinNav: { label: string; url: string }[] = [
+	{ label: "HOME", url: "/" },
+	{ label: "ARTICLES", url: "/posts" },
+	{ label: "PAGES", url: "/pages" },
 ];
 const builtinUrls = new Set(builtinNav.map((i) => normalizeUrl(i.url)));
 
 const menuItems = (menu?.items ?? [])
 	.map((item) => ({
-		label: item.label,
+		label: normalizeUrl(item.url) === "/about" ? "ABOUT" : item.label,
 		url: item.url,
 		target: item.target ?? null,
-		icon: "browser" as IconName,
 	}))
 	.filter((item) => !builtinUrls.has(normalizeUrl(item.url)));
 
-const navItems = [
+const navItems: { label: string; url: string; target?: string | null }[] = [
 	...builtinNav,
 	...menuItems.filter((item) => normalizeUrl(item.url) !== "/gallery"),
-	{ label: "ギャラリー", url: "/gallery", icon: "paint" as IconName },
+	{ label: "GALLERY", url: "/gallery" },
 ];
 
 const pageCtx = createPublicPageContext({
@@ -103,7 +86,21 @@ const pageCtx = createPublicPageContext({
 	siteName: siteTitle,
 });
 
-const barTitle = windowTitle ?? `${title} - ${BROWSER_NAME}`;
+const pageNumbers: Record<string, string> = {
+	"/": "100",
+	"/posts": "200",
+	"/gallery": "300",
+	"/pages": "500",
+	"/about": "501",
+};
+const pageNumber = pageNumbers[currentPath] ?? null;
+const sectionName = currentPath === "/posts" ? "ARCHIVE / ARTICLES" : currentPath === "/pages" ? "DIRECTORY / PAGES" : currentPath === "/gallery" ? "GALLERY" : "READING ROOM";
+const navNumbers: Record<string, string> = { "/": "100", "/posts": "200", "/gallery": "300", "/pages": "500", "/about": "501" };
+navItems.sort((a, b) => {
+	const aNumber = Number(navNumbers[normalizeUrl(a.url)] ?? Number.MAX_SAFE_INTEGER);
+	const bNumber = Number(navNumbers[normalizeUrl(b.url)] ?? Number.MAX_SAFE_INTEGER);
+	return aNumber - bNumber;
+});
 ---
 
 <!doctype html>
@@ -111,10 +108,10 @@ const barTitle = windowTitle ?? `${title} - ${BROWSER_NAME}`;
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<meta name="theme-color" content="#38615F" />
+		<meta name="theme-color" content="#fffef7" />
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Noto+Sans+JP:wght@400;600&display=swap" rel="stylesheet" />
+		<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=VT323&family=Noto+Sans+JP:wght@400;600&display=swap" rel="stylesheet" />
 		<title>{fullTitle}</title>
 		{pageDescription && <meta name="description" content={pageDescription} />}
 		{canonical && <link rel="canonical" href={canonical} />}
@@ -123,47 +120,30 @@ const barTitle = windowTitle ?? `${title} - ${BROWSER_NAME}`;
 	<body>
 		<EmDashBodyStart page={pageCtx} />
 
-		<div class="desktop">
-			{
-				chrome === "desktop" ? (
-					<slot />
-				) : (
-					<div class="desktop-single">
-						{/*
-						 * 下層ページは窓 1 枚。メニュー行もアドレスバーも持たず、
-						 * 画面の上下左右いっぱいに広がる。
-						 */}
-						<Window
-							id="page"
-							class="win-page"
-							title={barTitle}
-							icon={windowIcon}
-							closable={false}
-						>
-							<div class:list={["win-content", narrow && "win-content-narrow"]}>
-								<slot />
-							</div>
-
-							<Fragment slot="status">
-								<span>{status}</span>
-								<span>{statusExtra}</span>
-							</Fragment>
-						</Window>
-					</div>
-				)
-			}
-		</div>
-
-		<Taskbar
-			navItems={navItems}
-			currentPath={currentPath}
-			railTitle={siteTitle}
-			showWindowActions={chrome === "desktop"}
-		/>
-
-		<script>
-			import "../scripts/desktop.ts";
-		</script>
+        <a class="skip-link" href="#main">本文へ移動</a>
+        <div class="site-shell">
+            <header class="masthead">
+                <div class="masthead-brand">
+                    <a class="brand" href="/" aria-label={`${siteTitle} home`}><TeletextLogo label={siteTitle} /></a>
+                </div>
+            </header>
+            <nav class="site-nav" aria-label="メインナビゲーション">
+                {navItems.map(item => <a href={item.url} target={item.target} aria-current={currentPath === normalizeUrl(item.url) ? "page" : undefined}><span>{navNumbers[normalizeUrl(item.url)] ?? "↗"}</span> {item.label}</a>)}
+            </nav>
+            <main id="main">
+                {layout === "home" ? <slot /> : <section class="tele-panel reading-panel">
+                    {!hidePanelBrand && <div class="panel-meta"><a href="/">THE INTERNET</a></div>}
+                    {sectionName !== "READING ROOM" && <div class="section-banner">{pageNumber && <span class="section-number">{pageNumber}</span>}<span>{sectionName}</span></div>}
+                    <div class:list={["page-content", narrow && "page-content-narrow"]}>{["/posts", "/pages", "/gallery"].includes(currentPath) && <h1 class="sr-only">{title}</h1>}<slot /></div>
+                    <div class="panel-bottom"><a href="/">← INDEX</a>{currentPath === '/gallery' && status && <span>{status}</span>}{pageNumber && <span>{pageNumber}</span>}</div>
+                </section>}
+            </main>
+            <footer class="site-footer">
+                <a href="/" class="footer-brand"><TeletextLogo label={siteTitle} /></a>
+                <p></p>
+                <span class="color-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+            </footer>
+        </div>
 
 		<EmDashBodyEnd page={pageCtx} />
 	</body>

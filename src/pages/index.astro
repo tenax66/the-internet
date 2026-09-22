@@ -1,276 +1,77 @@
 ---
-import {
-	getEmDashCollection,
-	getEmDashEntry,
-	getSiteSettings,
-	getTaxonomyTerms,
-	getTermsForEntries,
-} from "emdash";
+import { getEmDashCollection, getEmDashEntry, getSiteSettings, getTaxonomyTerms } from "emdash";
 import { Image, PortableText } from "emdash/ui";
 import Base from "../layouts/Base.astro";
-import Window from "../components/Window.astro";
-import Icon from "../components/Icon.astro";
-import Television from "../components/widgets/Television.astro";
+import TeletextLogo from "../components/TeletextLogo.astro";
+import TeletextGlobe from "../components/TeletextGlobe.astro";
 import { getGallery, galleryImage } from "../utils/gallery";
-import MyComputerWindow from "../components/desktop/MyComputerWindow.astro";
-import LinksWindow from "../components/desktop/LinksWindow.astro";
-import MediaPlayerWindow from "../components/desktop/MediaPlayerWindow.astro";
-import SolitaireWindow from "../components/desktop/SolitaireWindow.astro";
-import NoLongerExistsWindow from "../components/desktop/NoLongerExistsWindow.astro";
-import {
-	BROWSER_NAME,
-	resolveStarterSiteIdentity,
-} from "../utils/site-identity";
-
-const { entries: posts, cacheHint } = await getEmDashCollection("posts", {
-	orderBy: { published_at: "desc" },
-});
-
-
-const { siteTitle, siteTagline } = resolveStarterSiteIdentity(
-	await getSiteSettings(),
-);
-
-/** 「このサイトについて」ウィンドウ。about ページが無ければ差し込み文を出す */
-const { entry: about } = await getEmDashEntry("pages", "about");
-
-/** マイ コンピュータ窓のページ数と、システムのプロパティ窓のカウント用 */
+import { resolveStarterSiteIdentity } from "../utils/site-identity";
+const { entries: posts, cacheHint } = await getEmDashCollection("posts", { orderBy: { published_at: "desc" } });
 const { entries: pages, cacheHint: pagesCacheHint } = await getEmDashCollection("pages");
-const sortedPages = [...pages].sort((a, b) => String(a.data.title).localeCompare(String(b.data.title), "ja"));
+const { entry: about, cacheHint: aboutCacheHint } = await getEmDashEntry("pages", "about");
 const { entries: artwork, cacheHint: galleryCacheHint } = await getGallery(undefined, 1);
-const latestArt = artwork[0]?.data.image;
-const latestArtUrl = galleryImage(latestArt);
-if (Astro.cache?.enabled) Astro.cache.set({ tags: [...(cacheHint.tags ?? []), ...(pagesCacheHint.tags ?? []), ...(galleryCacheHint.tags ?? [])] });
-
-/*
- * カテゴリはタクソノミが未定義だと投げるので、無ければ空扱いにする。
- * （マイ コンピュータ窓は空なら中身を出さない）
- */
 const categories = await getTaxonomyTerms("category").catch(() => []);
-
+const { siteTitle, siteTagline } = resolveStarterSiteIdentity(await getSiteSettings());
+if (Astro.cache?.enabled) Astro.cache.set({ tags: [...(cacheHint.tags ?? []), ...(pagesCacheHint.tags ?? []), ...(aboutCacheHint.tags ?? []), ...(galleryCacheHint.tags ?? [])] });
 const recent = posts.slice(0, 8);
-const latestPost = posts[0];
-const tagsByEntry = await getTermsForEntries(
-	"posts",
-	recent.map((p) => p.data.id),
-	"tag",
-);
-
-/** 「お気に入り」窓に出す外部リンク。ここを書き換えれば中身が変わる */
-const favorites = [
-	{ label: "Internet Archive", url: "https://archive.org/", note: "web" },
-	{ label: "Neocities", url: "https://neocities.org/", note: "web" },
-	{ label: "GitHub", url: "https://github.com/tenax66", note: "code" },
-];
-
-const dateFormat = new Intl.DateTimeFormat("ja-JP", {
-	year: "numeric",
-	month: "2-digit",
-	day: "2-digit",
-});
-
-/**
- * 一覧系の窓は中身の件数で高さを決める。記事が 1 本しか無いのに
- * 高さだけ確保すると、白い空白がそのまま見えてしまうため。
- */
-const clampRow = (n: number, min: number, max: number) =>
-	Math.max(min, Math.min(max, n));
-const postsRow = clampRow(11 + recent.length * 4, 15, 43);
+const latest = posts[0];
+const art = artwork[0]?.data.image;
+const artUrl = galleryImage(art);
+const dateFormat = new Intl.DateTimeFormat("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit" });
+const sections = [ { number: '100', title: 'INDEX', label: 'HOME', href: '/' }, { number: '200', title: 'ARTICLE', label: 'ARTICLES', href: '/posts' }, { number: '300', title: 'GALLERY', label: 'GALLERY', href: '/gallery' }, { number: '500', title: 'PAGES', label: 'PAGES', href: '/pages' } ];
 ---
-
-<Base title={siteTitle} description={siteTagline} chrome="desktop">
-	{/*
-	 * 窓が乱立するのはこのトップページだけ。下層ページは 1 枚の窓になる。
-	 *
-	 * 窓は .desktop-grid の直下に並べる。並び順 = スマートフォンでの流し込み順
-	 * （左の段を上から埋めて右の段へ）なので、大事なものから書く。広い画面での
-	 * 配置は各窓の col / row と、広い画面用の公開サイトに合わせた配置で決める。
-	 * 看板は広い画面では左半分、スマートフォンでは全幅に置く。
-	 */}
-	<div class="desktop-grid classic-desktop" style={`--posts-rows:${postsRow}`}>
-		{/* ---------------------------------------------- 看板ウィンドウ */}
-		<Window
-			id="main"
-			class="area-main"
-			icon="document"
-			title={`${siteTitle} - ${siteTagline}`}
-			closable={false}
-			col={2}
-			row={37}
-		>
-			<div class="signboard">
-				<h1 class="signboard-title">{siteTitle}</h1>
-				<p class="signboard-tagline">{siteTagline}</p>
-			</div>
-		</Window>
-
-		{/* ------------------------------------------------------ 最新 */}
-		<Window
-			id="latest"
-			class="area-latest"
-			icon="document"
-			title="最新"
-			badge="New!"
-			col={2}
-			row={37}
-		>
-			{
-				latestPost ? (
-					<article class="prose latest-post">
-						<header class="entry-head">
-							<h2>
-								<a href={`/posts/${latestPost.id}`}>{latestPost.data.title}</a>
-							</h2>
-							{latestPost.data.publishedAt && (
-								<p class="entry-meta">
-									<time datetime={latestPost.data.publishedAt.toISOString()}>
-										{dateFormat.format(latestPost.data.publishedAt)}
-									</time>
-								</p>
-							)}
-						</header>
-						{latestPost.data.featured_image && (
-							<figure class="entry-figure">
-								<Image image={latestPost.data.featured_image} width={960} />
-							</figure>
-						)}
-						<PortableText value={latestPost.data.content} />
-					</article>
-				) : (
-					<p>
-						まだ記事がありません。
-						<a href="/_emdash/admin/content/posts/new">1 本目を書く</a>
-					</p>
-				)
-			}
-			{latestPost && (
-				<Fragment slot="status">
-					<a href={`/posts/${latestPost.id}`}>この記事を開く</a>
-				</Fragment>
-			)}
-		</Window>
-
-		{/* -------------------------------------------------- 記事一覧 */}
-		<Window
-			id="posts"
-			class="area-posts"
-			icon="folder-open"
-			title="記事一覧"
-			bodyClass="win-body-flush"
-			col={2}
-			row={postsRow}
-		>
-			<div class="win-scroll">
-				{
-					recent.length === 0 ? (
-						<p class="listview-empty">
-							まだ記事がありません。
-							<a href="/_emdash/admin/content/posts/new">1 本目を書く</a>
-						</p>
-					) : (
-						<div class="listview">
-							{recent.map((post) => {
-								const postTags = tagsByEntry.get(post.data.id) ?? [];
-								return (
-									<a class="listview-row" href={`/posts/${post.id}`}>
-										<Icon name="document" class="listview-icon" />
-										<span class="listview-name">{post.data.title}</span>
-										<span class="listview-meta">
-											{post.data.publishedAt
-												? dateFormat.format(post.data.publishedAt)
-												: "下書き"}
-										</span>
-										<span class="listview-meta listview-meta-extra">
-											{postTags.length > 0
-												? postTags.map((t) => t.label).join(", ")
-												: "—"}
-										</span>
-									</a>
-								);
-							})}
-						</div>
-					)
-				}
-			</div>
-		</Window>
-
-		{/* ---------------------------------------- このサイトについて */}
-		<Window
-			id="about"
-			class="area-about"
-			icon="browser"
-			title={`${about?.data.title ?? "このサイトについて"} - ${BROWSER_NAME}`}
-			col={2}
-			row={23}
-		>
-			<div class="prose">
-				{
-					about ? (
-						<PortableText value={about.data.content} />
-					) : (
-						<p>
-							about ページがまだありません。
-							<a href="/_emdash/admin/content/pages/new">管理画面から作成</a>
-							すると、ここに本文が表示されます。
-						</p>
-					)
-				}
-			</div>
-
-			<div class="row" style="margin-top:14px">
-				{about && <a class="btn" href="/about">続きを読む</a>}
-				<a class="btn" href="/pages">ページ一覧</a>
-			</div>
-		</Window>
-
-		{/* ------------------------------------------ マイ コンピュータ */}
-		<MyComputerWindow
-			postCount={posts.length}
-			pageCount={pages.length}
-			categories={categories}
-			col={1}
-			row={27}
-		/>
-
-		{/* -------------------------------------------------- ドット絵 */}
-		<Window
-			id="paint"
-			class="area-paint"
-			icon="paint"
-			title="ギャラリー - ペイント"
-			bodyClass="win-body-face"
-			col={1}
-			row={50}
-			fit
-		>
-			<div class="paint">
-				<div class="paint-tools" aria-hidden="true">
-					{Array.from({ length: 16 }).map(() => <span class="paint-tool" />)}
-				</div>
-				<div class="paint-canvas">
-					{latestArt && latestArtUrl ? <a class="latest-art" href="/gallery"><img src={latestArtUrl} alt={latestArt.alt || "最新のドット絵。ギャラリーへ"} width={latestArt.width} height={latestArt.height} /></a> : <p>まだ画像がありません。</p>}
-				</div>
-			</div>
-			<Fragment slot="status"><a href="/gallery">過去のドット絵を見る →</a></Fragment>
-		</Window>
-
-		{/* -------------------------------------------------- ページ一覧 */}
-		<Window id="pages" class="area-pages" icon="document" title="ページ一覧" bodyClass="win-body-flush" col={1} row={18}>
-			{sortedPages.length === 0 ? <p class="listview-empty">まだページがありません。</p> : <div class="listview">{sortedPages.map(page => <a class="listview-row" href={`/${page.id}`}><Icon name="document" class="listview-icon" /><span class="listview-name">{page.data.title}</span></a>)}</div>}
-			<Fragment slot="status"><a href="/pages">ページ一覧を開く</a><span>{pages.length} 個</span></Fragment>
-		</Window>
-
-		{/* -------------------------------------------------- ソリティア */}
-		<SolitaireWindow col={1} row={25} />
-
-		{/* -------------------------------------------------- お気に入り */}
-		<LinksWindow links={favorites} col={1} row={17} />
-
-		{/* ------------------------------------------------- 飾りの窓たち */}
-		<NoLongerExistsWindow col={1} row={24} />
-		<MediaPlayerWindow col={1} row={24} />
-		<Window id="television" class="area-tv" icon="media" title="テレビ" bodyClass="win-body-face" col={1} row={55} fit>
-			<Television headlines={recent.map(post => post.data.title)} />
-		</Window>
-	</div>
+<Base title={siteTitle} description={siteTagline} layout="home">
+ <h1 class="sr-only">{siteTitle}</h1>
+ <div class="home-grid">
+  <section class="tele-panel index-panel" aria-label="サイト目次">
+   <div class="panel-meta"><span>100</span></div>
+   <div class="index-sign"><TeletextLogo label={siteTitle} /><p>NETPRINT</p></div>
+   <div class="index-body">
+    <nav class="index-links" aria-label="目次">{sections.map((section, i) => <a href={section.href} class:list={[i === 0 && 'selected']}><b>{section.number}</b><span>{section.title}</span><span class="leader" aria-hidden="true"></span></a>)}{about && <a href="/about"><b>501</b><span>ABOUT</span><span class="leader" aria-hidden="true"></span></a>}</nav>
+    <div class="globe-caption"><TeletextGlobe /><span>GLOBAL<br />COMMUNICATION</span></div>
+   </div>
+   <div class="ticker"><span>*** HOME ***</span></div>
+  </section>
+  <section class="tele-panel latest-panel" id="latest">
+   <div class="panel-meta"><span>200</span></div>
+   <h2 class="color-heading cyan">LATEST ARTICLES</h2>
+   <ol class="latest-list">{recent.map((post) => <li><a href={`/posts/${post.id}`}><span class="latest-title">{post.data.title}</span></a></li>)}</ol>
+   {recent.length === 0 && <p class="empty-state">まだ記事がありません。<br />次の更新をお楽しみに。</p>}
+   <a class="strip-link" href="/posts">READ ALL ARTICLES →</a>
+  </section>
+  <section class="tele-panel gallery-panel">
+   <div class="panel-meta"><span>300</span></div>
+   <h2 class="color-heading magenta">GALLERY</h2>
+   <a class="gallery-preview" href="/gallery">{art && artUrl ? <img src={artUrl} alt={art.alt || '最新のドット絵'} width={art.width} height={art.height} /> : <div class="gallery-placeholder" aria-hidden="true">▟ ▚ ▙<br />▚ ▟ ▞<br />▙ ▞ ▟</div>}</a>
+   <a class="text-link" href="/gallery">VIEW GALLERY →</a>
+  </section>
+  <section class="tele-panel feature-panel">
+   <div class="panel-meta"><span>201</span></div>
+   <h2 class="color-heading feature-heading"><span>FEATURED</span>PICK OF THE LATEST</h2>
+   {latest && <article class="feature-article">
+    <div class="feature-copy"><p class="eyebrow">LATEST ENTRY</p><h3><a href={`/posts/${latest.id}`}>{latest.data.title}</a></h3>{latest.data.excerpt ? <p>{latest.data.excerpt}</p> : <div class="feature-excerpt"><PortableText value={latest.data.content} /></div>}</div>
+    {latest.data.featured_image && <a class="feature-image" href={`/posts/${latest.id}`} aria-label={latest.data.title}><Image image={latest.data.featured_image} width={640} /></a>}
+    <div class="feature-foot">{latest.data.publishedAt && <time datetime={latest.data.publishedAt.toISOString()}>{dateFormat.format(latest.data.publishedAt)}</time>}<a href={`/posts/${latest.id}`}>READ MORE →</a></div>
+   </article>}
+  </section>
+  <aside class="home-sidebar">
+   <section class="tele-panel about-panel">
+    <div class="panel-meta"><span>501</span></div>
+    <h2 class="color-heading yellow">A SMALLER INTERNET</h2>
+    {about ? <div class="about-excerpt"><PortableText value={about.data.content} /></div> : <p class="about-excerpt">{siteTagline}</p>}
+    <a class="text-link" href={about ? '/about' : '/pages'}>{about ? 'ABOUT THIS SITE' : 'PAGES'} →</a>
+   </section>
+   <section class="tele-panel directory-panel">
+    <div class="panel-meta"><span>500</span></div>
+    <h2 class="color-heading green">PAGE DIRECTORY</h2>
+    <div class="directory-links">{pages.map((page) => <a href={`/${page.id}`}>{page.data.title}<b>↗</b></a>)}</div>
+    {categories.length > 0 && <div class="category-links"><p class="eyebrow">FILED UNDER</p>{categories.map(category => <a href={`/category/${category.slug}`}>{category.label} ↗</a>)}</div>}
+    {pages.length === 0 && <a class="text-link" href="/posts">EXPLORE ARTICLES →</a>}
+   </section>
+  </aside>
+  <section class="tele-panel elsewhere-panel">
+   <div class="panel-meta"><span>888</span></div>
+   <div class="elsewhere-content"><p>ENJOY YOUR<br /><strong>TELECOMMUNICATIONS.</strong></p><a href="https://archive.org/">INTERNET ARCHIVE ↗</a><a href="https://neocities.org/">NEOCITIES ↗</a><a href="https://github.com/tenax66">GITHUB ↗</a><span class="pixel-pattern" aria-hidden="true">▚▞▚▞</span></div>
+  </section>
+ </div>
 </Base>

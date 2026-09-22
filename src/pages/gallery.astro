@@ -8,7 +8,7 @@ const images = entries.flatMap(({ data }) => {
 	return src ? [{ data, src }] : [];
 });
 ---
-<Base title="ギャラリー" windowTitle="ギャラリー - 画像ビューア" windowIcon="paint" status="画像を選ぶと拡大します">
+<Base title="ギャラリー">
 	<div class="gallery-grid">
 		{images.map(({ data, src }) => (
 			<a href={src} class="gallery-item" data-gallery-image>

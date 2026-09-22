@@ -41,9 +41,10 @@ const dateFormat = new Intl.DateTimeFormat("ja-JP", {
 						{post.data.featured_image ? (
 							<Image image={post.data.featured_image} width={480} />
 						) : (
-							<span class="post-card-placeholder">
-								<Icon name="document" size={32} />
-							</span>
+							<svg class="post-card-document" viewBox="0 0 16 16" aria-hidden="true" shape-rendering="crispEdges" fill="currentColor">
+								<path fill-rule="evenodd" d="M2 1h12v14H2zM4 3v10h8V3z" />
+								<path d="M5 5h6v1H5zm0 3h6v1H5zm0 3h4v1H5z" />
+							</svg>
 						)}
 					</a>
 
