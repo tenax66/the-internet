@@ -64,10 +64,13 @@
 .home-grid .feature-foot a,.home-grid .text-link,.home-grid .strip-link {
 	color:var(--cobalt);
 }
+.home-grid .feature-foot {
+	border-top:0;
+}
 .home-grid .latest-list a {
 	font-size:14px;
 	padding:12px 3px;
-	border-bottom:1px dotted var(--rule);
+	border-bottom:0;
 	overflow-wrap:anywhere;
 }
 .home-grid .gallery-preview {

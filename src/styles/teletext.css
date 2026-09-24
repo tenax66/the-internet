@@ -171,7 +171,6 @@ button,.btn {
 	font-family:var(--pixel);
 	font-size:17px;
 	line-height:1.1;
-	border-bottom:1px solid var(--rule);
 	padding:0 2px 7px;
 	margin-bottom:9px;
 }
@@ -183,14 +182,23 @@ button,.btn {
 	flex-direction:column;
 }
 .color-heading {
+	display:flex;
+	align-items:center;
+	gap:16px;
 	font:34px/1 var(--pixel);
 	font-weight:400;
 	color:var(--ink);
 	background:var(--ivory);
 	border-left:7px solid var(--heading-accent,var(--cyan));
-	border-bottom:1px solid var(--rule);
 	padding:7px 12px;
 	margin-bottom:8px;
+}
+.color-heading::after {
+	content:"";
+	flex:1 1 20px;
+	min-width:20px;
+	height:4px;
+	background:var(--heading-accent,var(--cyan));
 }
 .color-heading.cyan { --heading-accent:var(--cyan); }
 .color-heading.magenta { --heading-accent:var(--magenta); }
@@ -414,7 +422,13 @@ button,.btn {
 	color:var(--ink);
 	border-left:7px solid var(--heading-accent,var(--cyan));
 	padding:7px 12px;
-	border-bottom:1px solid var(--rule);
+}
+.section-banner::after {
+	content:"";
+	flex:1 1 20px;
+	min-width:20px;
+	height:4px;
+	background:var(--heading-accent,var(--cyan));
 }
 .section-banner[data-section="300"] { --heading-accent:var(--magenta); }
 .section-banner[data-section="500"] { --heading-accent:var(--green); }
@@ -445,6 +459,19 @@ button,.btn {
 .prose h1 {
 	font-size:30px;
 	margin:0 0 18px;
+}
+.entry-head h1,.archive-title,.page-content > h1:not(.sr-only) {
+	display:flex;
+	align-items:center;
+	gap:16px;
+	min-width:0;
+}
+.entry-head h1::after,.archive-title::after,.page-content > h1:not(.sr-only)::after {
+	content:"";
+	flex:1 1 20px;
+	min-width:20px;
+	height:4px;
+	background:var(--cyan);
 }
 .prose h2 {
 	font-size:24px;
@@ -489,7 +516,6 @@ button,.btn {
 	max-width:100%;
 }
 .entry-head {
-	border-bottom:1px solid var(--rule);
 	padding-bottom:12px;
 	margin-bottom:28px;
 }
@@ -508,7 +534,6 @@ button,.btn {
 }
 .entry-sep {
 	border:0;
-	border-top:1px solid var(--rule);
 	margin:30px 0;
 }
 .panel-bottom {
@@ -516,7 +541,6 @@ button,.btn {
 	justify-content:space-between;
 	gap:12px;
 	padding:8px 4px 0;
-	border-top:1px solid var(--rule);
 	font:17px/1.4 var(--pixel);
 }
 .post-grid {
@@ -528,7 +552,6 @@ button,.btn {
 	display:flex;
 	gap:25px;
 	align-items:flex-start;
-	border-bottom:1px solid var(--rule);
 	padding:25px 0;
 }
 .post-card:first-child {
@@ -855,9 +878,9 @@ button,.btn {
 	font-family: var(--pixel);
 	font-size: 24px;
 	font-weight: 400;
-	border-bottom: 1px solid var(--rule);
+	border-left: 7px solid var(--cyan);
 	margin: 22px 0 12px;
-	padding-bottom: 5px;
+	padding: 5px 12px;
 }
 .widgets ul {
 	padding-left: 20px;
