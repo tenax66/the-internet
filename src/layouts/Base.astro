@@ -1,10 +1,12 @@
 ---
-import { getMenu, getSiteSettings } from "emdash";
+import { getEmDashEntry, getMenu, getSiteSettings } from "emdash";
 import { EmDashHead, EmDashBodyStart, EmDashBodyEnd } from "emdash/ui";
 import { createPublicPageContext } from "emdash/page";
 import TeletextLogo from "../components/TeletextLogo.astro";
 import { resolveStarterSiteIdentity } from "../utils/site-identity";
+import { formatServiceClock } from "../utils/service-clock";
 import "../styles/teletext.css";
+import "../styles/home-layout.css";
 
 interface Props {
 	title: string;
@@ -39,39 +41,34 @@ const { siteTitle, siteTagline } = resolveStarterSiteIdentity(
 const fullTitle = title.includes(siteTitle) ? title : `${title} — ${siteTitle}`;
 const pageDescription = description ?? siteTagline;
 
-const menu = await getMenu("primary");
 const currentPath = Astro.url.pathname.replace(/\/$/, "") || "/";
+const normalizeUrl = (url: string) => url.replace(/\/$/, "") || "/";
+const menu = await getMenu("primary");
+const { entry: about } = await getEmDashEntry("pages", "about");
+const navItems: { label: string; url: string; number: string; target?: string | null }[] = [
+	{ label: "INDEX", url: "/", number: "100" },
+	{ label: "ARTICLES", url: "/posts", number: "200" },
+	{ label: "GALLERY", url: "/gallery", number: "300" },
+	{ label: "PAGES", url: "/pages", number: "500" },
+];
+if (about || menu?.items?.some((item) => normalizeUrl(item.url) === "/about")) {
+	navItems.push({ label: "ABOUT", url: "/about", number: "501" });
+}
+const navUrls = new Set(navItems.map((item) => item.url));
+for (const item of menu?.items ?? []) {
+	const url = normalizeUrl(item.url);
+	if (navUrls.has(url)) continue;
+	navItems.push({ label: item.label, url: item.url, number: "↗", target: item.target });
+	navUrls.add(url);
+}
+const activeNavUrl = currentPath === "/" ? "/"
+	: currentPath === "/posts" || currentPath.startsWith("/posts/") || currentPath.startsWith("/category/") || currentPath.startsWith("/tag/") ? "/posts"
+	: currentPath === "/gallery" || currentPath.startsWith("/gallery/") ? "/gallery"
+	: navItems.find((item) => normalizeUrl(item.url) === currentPath)?.url
+		?? (/^\/[^/]+$/.test(currentPath) && currentPath !== "/404" ? "/pages" : null);
 const hidePanelBrand = ["/posts", "/pages", "/about", "/gallery"].includes(currentPath)
 	|| currentPath.startsWith("/posts/")
 	|| (/^\/[^/]+$/.test(currentPath) && !["/gallery", "/404"].includes(currentPath));
-
-/*
- * 画面上部のバーに並べるナビ。
- * ブログの主要機能（ホーム / 記事一覧 / ページ一覧）は常に出し、そのうしろに
- * emdash の primary メニューで足された項目を並べる。URL が重なったものは省く。
- */
-const normalizeUrl = (url: string) => url.replace(/\/$/, "") || "/";
-
-const builtinNav: { label: string; url: string }[] = [
-	{ label: "HOME", url: "/" },
-	{ label: "ARTICLES", url: "/posts" },
-	{ label: "PAGES", url: "/pages" },
-];
-const builtinUrls = new Set(builtinNav.map((i) => normalizeUrl(i.url)));
-
-const menuItems = (menu?.items ?? [])
-	.map((item) => ({
-		label: normalizeUrl(item.url) === "/about" ? "ABOUT" : item.label,
-		url: item.url,
-		target: item.target ?? null,
-	}))
-	.filter((item) => !builtinUrls.has(normalizeUrl(item.url)));
-
-const navItems: { label: string; url: string; target?: string | null }[] = [
-	...builtinNav,
-	...menuItems.filter((item) => normalizeUrl(item.url) !== "/gallery"),
-	{ label: "GALLERY", url: "/gallery" },
-];
 
 const pageCtx = createPublicPageContext({
 	Astro,
@@ -95,12 +92,8 @@ const pageNumbers: Record<string, string> = {
 };
 const pageNumber = pageNumbers[currentPath] ?? null;
 const sectionName = currentPath === "/posts" ? "ARCHIVE / ARTICLES" : currentPath === "/pages" ? "DIRECTORY / PAGES" : currentPath === "/gallery" ? "GALLERY" : "READING ROOM";
-const navNumbers: Record<string, string> = { "/": "100", "/posts": "200", "/gallery": "300", "/pages": "500", "/about": "501" };
-navItems.sort((a, b) => {
-	const aNumber = Number(navNumbers[normalizeUrl(a.url)] ?? Number.MAX_SAFE_INTEGER);
-	const bNumber = Number(navNumbers[normalizeUrl(b.url)] ?? Number.MAX_SAFE_INTEGER);
-	return aNumber - bNumber;
-});
+const now = new Date();
+const serviceClock = formatServiceClock(now);
 ---
 
 <!doctype html>
@@ -122,29 +115,56 @@ navItems.sort((a, b) => {
 
         <a class="skip-link" href="#main">本文へ移動</a>
         <div class="site-shell">
+            <div class="service-meta">
+                <time class="service-clock" datetime={now.toISOString()} title="日本標準時（JST）" data-service-clock>
+                    <span data-service-date>{serviceClock.date}</span>
+                    <span data-service-time>{serviceClock.time}</span>
+                </time>
+            </div>
             <header class="masthead">
                 <div class="masthead-brand">
                     <a class="brand" href="/" aria-label={`${siteTitle} home`}><TeletextLogo label={siteTitle} /></a>
+                    <p class="masthead-caption">NETPRINT</p>
                 </div>
             </header>
             <nav class="site-nav" aria-label="メインナビゲーション">
-                {navItems.map(item => <a href={item.url} target={item.target} aria-current={currentPath === normalizeUrl(item.url) ? "page" : undefined}><span>{navNumbers[normalizeUrl(item.url)] ?? "↗"}</span> {item.label}</a>)}
+                {navItems.map((item) => <a href={item.url} target={item.target} rel={item.target === "_blank" ? "noopener noreferrer" : undefined} data-section={item.number} aria-current={activeNavUrl && normalizeUrl(item.url) === normalizeUrl(activeNavUrl) ? "page" : undefined}><b>{item.number}</b><span>{item.label}</span></a>)}
             </nav>
             <main id="main">
                 {layout === "home" ? <slot /> : <section class="tele-panel reading-panel">
                     {!hidePanelBrand && <div class="panel-meta"><a href="/">THE INTERNET</a></div>}
-                    {sectionName !== "READING ROOM" && <div class="section-banner">{pageNumber && <span class="section-number">{pageNumber}</span>}<span>{sectionName}</span></div>}
+                    {sectionName !== "READING ROOM" && <div class="section-banner" data-section={pageNumber}>{pageNumber && <span class="section-number">{pageNumber}</span>}<span>{sectionName}</span></div>}
                     <div class:list={["page-content", narrow && "page-content-narrow"]}>{["/posts", "/pages", "/gallery"].includes(currentPath) && <h1 class="sr-only">{title}</h1>}<slot /></div>
                     <div class="panel-bottom"><a href="/">← INDEX</a>{currentPath === '/gallery' && status && <span>{status}</span>}{pageNumber && <span>{pageNumber}</span>}</div>
                 </section>}
             </main>
             <footer class="site-footer">
-                <a href="/" class="footer-brand"><TeletextLogo label={siteTitle} /></a>
-                <p></p>
-                <span class="color-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+                <div class="footer-top">
+                    <a href="/" class="footer-brand"><TeletextLogo label={siteTitle} /></a>
+                    <span class="color-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+                </div>
             </footer>
         </div>
 
 		<EmDashBodyEnd page={pageCtx} />
 	</body>
 </html>
+
+<script>
+	import { formatServiceClock } from "../utils/service-clock";
+
+	const clock = document.querySelector<HTMLTimeElement>("[data-service-clock]");
+	const dateLabel = clock?.querySelector("[data-service-date]");
+	const timeLabel = clock?.querySelector("[data-service-time]");
+	if (clock && dateLabel && timeLabel) {
+		const update = () => {
+			const now = new Date();
+			const formatted = formatServiceClock(now);
+			clock.dateTime = now.toISOString();
+			dateLabel.textContent = formatted.date;
+			timeLabel.textContent = formatted.time;
+		};
+		update();
+		window.setInterval(update, 1000);
+	}
+</script>
