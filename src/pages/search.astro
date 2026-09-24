@@ -1,0 +1,65 @@
+---
+import { search } from "emdash";
+import Base from "../layouts/Base.astro";
+
+const query = (Astro.url.searchParams.get("q") ?? "").trim();
+const cursor = Astro.url.searchParams.get("cursor") ?? undefined;
+let results: Awaited<ReturnType<typeof search>> = { items: [] };
+let searchError = false;
+
+if (query) {
+	try {
+		results = await search(query, { collections: ["posts", "pages"], cursor, limit: 20 });
+	} catch (error) {
+		console.error("Search failed", error);
+		searchError = true;
+	}
+}
+
+const nextPage = results.nextCursor
+	? `/search?${new URLSearchParams({ q: query, cursor: results.nextCursor })}`
+	: null;
+---
+
+<Base title="検索" description="記事とページを検索" narrow>
+	<h1>検索</h1>
+	<form class="search-form" method="get" action="/search" role="search">
+		<input type="search" name="q" value={query} aria-label="検索語" required />
+		<button type="submit">検索</button>
+	</form>
+	{searchError ? (
+		<p class="listview-empty">検索に失敗しました。</p>
+	) : !query ? (
+		<p class="listview-empty">検索ワードを入力してください。</p>
+	) : results.items.length === 0 ? (
+		<p class="listview-empty">「{query}」に一致する記事・ページはありません。</p>
+	) : (
+		<>
+			<p class="search-summary">「{query}」の検索結果</p>
+			<ul class="post-grid">
+				{results.items.map((result) => (
+					<li class="post-card">
+						<div class="post-card-body">
+							<h2 class="post-card-title">
+								<a href={result.collection === "posts" ? `/posts/${encodeURIComponent(result.slug ?? result.id)}` : `/${encodeURIComponent(result.slug ?? result.id)}`}>
+									{result.title ?? result.slug ?? result.id}
+								</a>
+							</h2>
+							{result.snippet && <p class="search-snippet" set:html={result.snippet} />}
+							<p class="post-card-meta">{result.collection === "posts" ? "記事" : "ページ"}</p>
+						</div>
+					</li>
+				))}
+			</ul>
+			{nextPage && <p class="search-next"><a href={nextPage}>次の結果 →</a></p>}
+		</>
+	)}
+</Base>
+
+<style>
+	.search-form { display: flex; gap: 8px; margin: 24px 0; }
+	.search-form input { flex: 1; min-width: 0; padding: 10px; font: inherit; }
+	.search-form button { padding: 10px 18px; font: inherit; cursor: pointer; }
+	.search-summary, .search-snippet, .search-next { margin: 12px 0; }
+	.search-snippet { overflow-wrap: anywhere; }
+</style>

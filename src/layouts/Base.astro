@@ -116,6 +116,7 @@ const serviceClock = formatServiceClock(now);
         <a class="skip-link" href="#main">本文へ移動</a>
         <div class="site-shell">
             <div class="service-meta">
+                <span class="service-label">NETPRINT</span>
                 <time class="service-clock" datetime={now.toISOString()} title="日本標準時（JST）" data-service-clock>
                     <span data-service-date>{serviceClock.date}</span>
                     <span data-service-time>{serviceClock.time}</span>
@@ -124,11 +125,10 @@ const serviceClock = formatServiceClock(now);
             <header class="masthead">
                 <div class="masthead-brand">
                     <a class="brand" href="/" aria-label={`${siteTitle} home`}><TeletextLogo label={siteTitle} /></a>
-                    <p class="masthead-caption">NETPRINT</p>
                 </div>
             </header>
             <nav class="site-nav" aria-label="メインナビゲーション">
-                {navItems.map((item) => <a href={item.url} target={item.target} rel={item.target === "_blank" ? "noopener noreferrer" : undefined} data-section={item.number} aria-current={activeNavUrl && normalizeUrl(item.url) === normalizeUrl(activeNavUrl) ? "page" : undefined}><b>{item.number}</b><span>{item.label}</span></a>)}
+                {navItems.map((item) => <a href={item.url} target={item.target} rel={item.target === "_blank" ? "noopener noreferrer" : undefined} data-section={item.number} aria-label={`${item.number} ${item.label}`} aria-current={activeNavUrl && normalizeUrl(item.url) === normalizeUrl(activeNavUrl) ? "page" : undefined}><b>{item.number}</b><span>{item.label}</span></a>)}
             </nav>
             <main id="main">
                 {layout === "home" ? <slot /> : <section class="tele-panel reading-panel">

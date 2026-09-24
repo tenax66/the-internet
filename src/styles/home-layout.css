@@ -26,17 +26,21 @@
 .home-grid .feature-heading {
 	display:flex;
 	align-items:center;
+	flex-wrap:wrap;
 	gap:12px;
 	color:var(--ink);
 }
 .home-grid .feature-heading>span {
-	padding:0;
+	padding:4px 8px 3px;
 	margin:0;
-	background:transparent;
-	color:var(--cobalt);
-	font-size:19px;
+	background:var(--yellow);
+	border:2px solid var(--cobalt);
+	box-shadow:3px 3px 0 var(--cobalt);
+	color:var(--navy);
+	font:18px/1 var(--pixel);
+	letter-spacing:.04em;
+	white-space:nowrap;
 }
-.home-grid .feature-heading>span::after { content:" /"; }
 .home-grid .feature-article {
 	padding:4px 8px 12px;
 }

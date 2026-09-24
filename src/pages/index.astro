@@ -10,7 +10,7 @@ const { entry: about, cacheHint: aboutCacheHint } = await getEmDashEntry("pages"
 const { entries: artwork, cacheHint: galleryCacheHint } = await getGallery(undefined, 1);
 const { siteTitle, siteTagline } = resolveStarterSiteIdentity(await getSiteSettings());
 if (Astro.cache?.enabled) Astro.cache.set({ tags: [...(cacheHint.tags ?? []), ...(pagesCacheHint.tags ?? []), ...(aboutCacheHint.tags ?? []), ...(galleryCacheHint.tags ?? [])] });
-const recent = posts.slice(1, 8);
+const recent = posts.slice(0, 5);
 const latest = posts[0];
 const art = artwork[0]?.data.image;
 const artUrl = galleryImage(art);
@@ -22,7 +22,7 @@ const directoryPages = pages.filter(page => page.id !== "about");
  <div class="home-grid">
   <div class="home-main">
   <section class="tele-panel feature-panel">
-   <h2 class="color-heading feature-heading"><span>FEATURED</span>LATEST NETPRINTS</h2>
+   <h2 class="color-heading feature-heading"><span>JUST IN</span>LATEST NETPRINTS</h2>
    {latest && <article class="feature-article">
     <div class="feature-copy"><h3><a href={`/posts/${latest.id}`}>{latest.data.title}</a></h3>{latest.data.excerpt ? <p>{latest.data.excerpt}</p> : <div class="feature-excerpt"><PortableText value={latest.data.content} /></div>}</div>
     {latest.data.featured_image && <a class="feature-image" href={`/posts/${latest.id}`} aria-label={latest.data.title}><Image image={latest.data.featured_image} width={640} /></a>}

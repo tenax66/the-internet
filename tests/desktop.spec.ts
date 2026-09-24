@@ -16,7 +16,7 @@ test('teletext index, article navigation and gallery', async ({ page }) => {
  await expect(page.locator('.site-footer .footer-brand')).toBeVisible();
  await expect(page.locator('.site-footer .color-bars')).toBeVisible();
  await expect(page.locator('.footer-bottom, .footer-message, .footer-links, .pixel-pattern')).toHaveCount(0);
- const storyLinks = await page.locator('.feature-copy h3 a, .latest-list a').evaluateAll(links => links.map(link => link.getAttribute('href')));
+ const storyLinks = await page.locator('.latest-list a').evaluateAll(links => links.map(link => link.getAttribute('href')));
  expect(new Set(storyLinks).size).toBe(storyLinks.length);
  await expect(page.locator('.category-links')).toHaveCount(0);
  const directoryPaths = await page.locator('.directory-links a').evaluateAll(links => links.map(link => link.getAttribute('href')!));

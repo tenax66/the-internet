@@ -75,10 +75,16 @@ button,.btn {
 }
 .service-meta {
 	display:flex;
-	justify-content:flex-end;
+	align-items:center;
+	justify-content:space-between;
+	gap:8px;
 	min-width:0;
 	padding-bottom:12px;
 	font:20px/1.2 var(--pixel);
+}
+.service-label {
+	white-space:nowrap;
+	letter-spacing:.16em;
 }
 .service-clock {
 	display:flex;
@@ -89,11 +95,6 @@ button,.btn {
 .masthead-brand {
 	flex:1;
 	min-width:0;
-}
-.masthead-caption {
-	margin-top:16px;
-	font:20px/1.2 var(--pixel);
-	letter-spacing:.16em;
 }
 .masthead a:focus-visible {
 	outline-color:var(--yellow);
@@ -397,13 +398,13 @@ button,.btn {
 	background:var(--cyan);
 }
 .color-bars i:nth-child(3) {
-	background:var(--yellow);
+	background:var(--magenta);
 }
 .color-bars i:nth-child(4) {
 	background:var(--green);
 }
 .color-bars i:nth-child(5) {
-	background:var(--magenta);
+	background:var(--yellow);
 }
 .section-banner {
 	display:flex;
@@ -723,9 +724,10 @@ button,.btn {
 	.service-meta { font-size:clamp(14px,4vw,18px); }
 	.service-clock { gap:8px; }
 	.masthead { gap:15px; padding:20px 14px; }
-	.masthead-caption { font-size:17px; margin-top:12px; }
+	.service-label { letter-spacing:.08em; }
 	.site-nav { margin:-4px 0 20px; }
-	.site-nav a { flex:0 0 auto; min-height:44px; font-size:19px; }
+	.site-nav a { flex:1 0 42px; justify-content:center; min-width:42px; min-height:44px; padding:6px 4px; }
+	.site-nav a span { display:none; }
 	.site-shell {
 		padding:17px 14px;
 	}
