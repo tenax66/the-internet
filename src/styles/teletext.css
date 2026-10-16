@@ -1,13 +1,13 @@
 :root {
-	--cobalt:#002fff;
+	--cobalt:#0000ff;
 	--cyan:#00ffff;
-	--yellow:#fff600;
+	--yellow:#ffff00;
 	--green:#00ff00;
 	--magenta:#ff00ff;
 	--ivory:#fffef7;
 	--navy:#1f293b;
 	--ink:#123572;
-	--red:#ff2536;
+	--red:#ff0000;
 	--rule:#234787;
 	--pixel:'VT323','DotGothic16',monospace;
 	--body:'DotGothic16',monospace;
@@ -491,7 +491,7 @@ button,.btn {
 .prose blockquote {
 	border-left:5px solid var(--cyan);
 	padding:10px 20px;
-	background:#00efef0d;
+	background:#00ffff0d;
 }
 .prose pre {
 	overflow:auto;
