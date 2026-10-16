@@ -8,6 +8,14 @@
 	--navy:#1f293b;
 	--ink:#123572;
 	--red:#ff0000;
+	/* Teletext CLUT 1: reserved for future use. */
+	--half-red:#770000;
+	--half-green:#007700;
+	--half-yellow:#777700;
+	--half-blue:#000077;
+	--half-magenta:#770077;
+	--half-cyan:#007777;
+	--grey:#777777;
 	--rule:#234787;
 	--pixel:'VT323','DotGothic16',monospace;
 	--body:'DotGothic16',monospace;
