@@ -147,10 +147,10 @@ button,.btn {
 	border-bottom:3px solid var(--nav-color);
 	font:22px/1.1 var(--pixel);
 }
-.site-nav a[data-section="100"] { --nav-color:var(--cyan); }
-.site-nav a[data-section="200"] { --nav-color:var(--half-cyan); }
-.site-nav a[data-section="300"] { --nav-color:var(--green); }
-.site-nav a[data-section="301"] { --nav-color:var(--half-green); }
+.site-nav a[data-section="100"] { --nav-color:var(--cobalt); }
+.site-nav a[data-section="200"] { --nav-color:var(--cyan); }
+.site-nav a[data-section="300"] { --nav-color:var(--half-green); }
+.site-nav a[data-section="301"] { --nav-color:var(--green); }
 .site-nav a[data-section="500"] { --nav-color:var(--magenta); }
 .site-nav a b {
 	background:var(--nav-color);
@@ -159,8 +159,8 @@ button,.btn {
 	font-weight:400;
 	padding:4px 5px;
 }
-.site-nav a[data-section="200"] b { color:#fff; }
-.site-nav a[data-section="301"] b { color:#fff; }
+.site-nav a[data-section="100"] b { color:#fff; }
+.site-nav a[data-section="300"] b { color:#fff; }
 .site-nav a[aria-current="page"] { background:var(--yellow); }
 .site-nav a:hover { text-decoration:none; background:var(--yellow); }
 .site-nav a:focus-visible { outline-offset:-3px; }
@@ -236,7 +236,7 @@ button,.btn {
 .latest-list a::before {
 	content:"▸";
 	font:16px/1 var(--pixel);
-	color:var(--green);
+	color:var(--half-cyan);
 }
 .strip-link {
 	color:var(--ink);
@@ -443,15 +443,15 @@ button,.btn {
 	height:4px;
 	background:var(--heading-accent,var(--cyan));
 }
-.section-banner[data-section="200"] { --heading-accent:var(--half-cyan); }
-.section-banner[data-section="300"] { --heading-accent:var(--green); }
+.section-banner[data-section="200"] { --heading-accent:var(--cyan); }
+.section-banner[data-section="300"] { --heading-accent:var(--half-green); }
 .section-banner[data-section="500"] { --heading-accent:var(--magenta); }
 .section-banner>.section-number {
 	background:var(--heading-accent,var(--cyan));
 	color:var(--navy);
 	padding:4px 7px;
 }
-.section-banner[data-section="200"]>.section-number { color:#fff; }
+.section-banner[data-section="300"]>.section-number { color:#fff; }
 .page-content {
 	padding:30px 22px;
 	min-height:260px;
@@ -489,11 +489,14 @@ button,.btn {
 	background:var(--content-accent,var(--cyan));
 }
 .article-theme {
-	--content-accent:var(--half-cyan);
-	--content-accent-tint:#0077770d;
+	--content-accent:var(--cyan);
+	--content-accent-tint:#00ffff0d;
 }
 .page-entry .entry-head h1::after {
 	background:var(--half-green);
+}
+.page-entry.about-entry .entry-head h1::after {
+	background:var(--green);
 }
 .prose h2 {
 	font-size:24px;
