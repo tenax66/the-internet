@@ -12,7 +12,8 @@ test('teletext index, article navigation and gallery', async ({ page }) => {
  await expect(page.locator('.service-meta > *')).toHaveCount(1);
  await expect(page.locator('.service-meta time')).toBeVisible();
  await expect(page.locator('.feature-panel')).toBeVisible();
- await expect(page.locator('.gallery-panel .color-heading')).toHaveCSS('border-left-color', 'rgb(255, 0, 255)');
+ await expect(page.locator('.gallery-panel .color-heading, .gallery-panel .text-link')).toHaveCount(0);
+ await expect(page.locator('.gallery-preview')).toHaveAttribute('href', '/gallery');
  await expect(page.locator('.site-footer .footer-brand')).toBeVisible();
  await expect(page.locator('.site-footer .color-bars')).toBeVisible();
  await expect(page.locator('.footer-bottom, .footer-message, .footer-links, .pixel-pattern')).toHaveCount(0);
@@ -62,7 +63,7 @@ test('all main pages fit mobile and tablet', async ({ page }) => {
    expect(await page.locator('.service-clock').evaluate(element => getComputedStyle(element).whiteSpace)).toBe('nowrap');
    if (url === '/' && width <= 700) {
     const main = await page.locator('.home-main').boundingBox();
-    const sidebar = await page.locator('.home-sidebar').boundingBox();
+    const sidebar = await page.locator('.about-panel').boundingBox();
     expect(main).not.toBeNull();
     expect(sidebar).not.toBeNull();
     expect(main!.width).toBeGreaterThan(width * .7);
@@ -87,4 +88,26 @@ test('navigation and images work without JavaScript', async ({ browser }) => {
   await expect(picture.locator('img')).toBeVisible();
  }
  await context.close();
+});
+
+test('homepage gallery comes first and links to gallery', async ({ page }) => {
+ await page.goto('/');
+ await expect(page.locator('.gallery-panel .color-heading, .gallery-panel .text-link')).toHaveCount(0);
+ for (const width of [375, 1440]) {
+  await page.setViewportSize({width,height:1000});
+  const gallery = await page.locator('.gallery-panel').boundingBox();
+  const main = await page.locator('.home-main').boundingBox();
+  expect(gallery).not.toBeNull();
+  expect(main).not.toBeNull();
+  if (width <= 700) {
+   expect(gallery!.y + gallery!.height).toBeLessThanOrEqual(main!.y);
+  } else {
+   expect(Math.abs(gallery!.y - main!.y)).toBeLessThan(2);
+   expect(gallery!.x).toBeGreaterThanOrEqual(main!.x + main!.width);
+   expect(gallery!.width).toBeLessThan(main!.width);
+  }
+ }
+ await page.locator('.gallery-preview').click();
+ await expect(page).toHaveURL(/\/gallery$/);
+ await page.goto('/');
 });

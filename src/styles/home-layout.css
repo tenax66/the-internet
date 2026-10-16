@@ -1,4 +1,4 @@
-/* Article and archive on the left; artwork and introduction on the right. */
+/* Articles on the left; artwork and introduction on the right. */
 .home-grid {
 	display:grid;
 	grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);
@@ -11,6 +11,8 @@
 	gap:28px;
 	min-width:0;
 }
+.home-main { grid-column:1; grid-row:1; }
+.home-sidebar { grid-column:2; grid-row:1; }
 .home-grid .tele-panel {
 	padding:0;
 	grid-column:auto;
@@ -120,6 +122,9 @@
 @media(max-width:700px) {
 	.home-grid { grid-template-columns:minmax(0,1fr); gap:24px; }
 	.home-main,.home-sidebar { gap:24px; }
+	.home-sidebar { display:contents; }
+	.home-main { grid-column:auto; grid-row:auto; order:1; }
+	.home-grid .about-panel { order:2; }
 	.home-grid .feature-copy h3 { font-size:24px; }
 	.home-grid .feature-image { width:100%; }
 	.home-grid .feature-copy>p,.home-grid .feature-excerpt,.home-grid .about-excerpt { font-size:14px; }

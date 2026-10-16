@@ -20,6 +20,16 @@ const directoryPages = pages.filter(page => page.id !== "about");
 <Base title={siteTitle} description={siteTagline} layout="home">
  <h1 class="sr-only">{siteTitle}</h1>
  <div class="home-grid">
+  <aside class="home-sidebar">
+  <div class="tele-panel gallery-panel">
+   <a class="gallery-preview" href="/gallery" aria-label="ギャラリーを見る">{art && artUrl ? <img src={artUrl} alt={art.alt || '最新のドット絵'} width={art.width} height={art.height} /> : <div class="gallery-placeholder" aria-hidden="true">▟ ▚ ▙<br />▚ ▟ ▞<br />▙ ▞ ▟</div>}</a>
+  </div>
+   <section class="tele-panel about-panel">
+    <h2 class="color-heading yellow">ABOUT THE INTERNET</h2>
+    {about ? <div class="about-excerpt"><PortableText value={about.data.content} /></div> : <p class="about-excerpt">{siteTagline}</p>}
+    <a class="text-link" href={about ? '/about' : '/pages'}>{about ? 'ABOUT THIS SITE' : 'PAGES'} →</a>
+   </section>
+  </aside>
   <div class="home-main">
   <section class="tele-panel feature-panel">
    <h2 class="color-heading feature-heading"><span>JUST IN</span>LATEST NETPRINTS</h2>
@@ -38,18 +48,6 @@ const directoryPages = pages.filter(page => page.id !== "about");
   </section>
    </>}
   </div>
-  <aside class="home-sidebar">
-  <section class="tele-panel gallery-panel">
-   <h2 class="color-heading magenta">GALLERY</h2>
-   <a class="gallery-preview" href="/gallery" aria-label="GALLERY">{art && artUrl ? <img src={artUrl} alt={art.alt || '最新のドット絵'} width={art.width} height={art.height} /> : <div class="gallery-placeholder" aria-hidden="true">▟ ▚ ▙<br />▚ ▟ ▞<br />▙ ▞ ▟</div>}</a>
-   <a class="text-link" href="/gallery">VIEW GALLERY →</a>
-  </section>
-   <section class="tele-panel about-panel">
-    <h2 class="color-heading yellow">ABOUT THE INTERNET</h2>
-    {about ? <div class="about-excerpt"><PortableText value={about.data.content} /></div> : <p class="about-excerpt">{siteTagline}</p>}
-    <a class="text-link" href={about ? '/about' : '/pages'}>{about ? 'ABOUT THIS SITE' : 'PAGES'} →</a>
-   </section>
-  </aside>
  </div>
  {directoryPages.length > 0 && <div class="home-utility">
    <section class="tele-panel directory-panel">
