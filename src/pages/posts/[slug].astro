@@ -47,7 +47,8 @@ const dateFormat = new Intl.DateTimeFormat("ja-JP", {
 	content={{ collection: "posts", id: post.data.id, slug }}
 	narrow
 >
-	<article class="prose">
+	<div class="article-theme">
+	<article class="prose post-entry">
 		<header class="entry-head">
 			<h1 {...post.edit.title}>{post.data.title}</h1>
 
@@ -105,4 +106,5 @@ const dateFormat = new Intl.DateTimeFormat("ja-JP", {
 	<aside class="widgets">
 		<WidgetArea name="sidebar" />
 	</aside>
+	</div>
 </Base>

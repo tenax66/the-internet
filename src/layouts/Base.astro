@@ -48,12 +48,12 @@ const { entry: about } = await getEmDashEntry("pages", "about");
 const navItems: { label: string; url: string; number: string; target?: string | null }[] = [
 	{ label: "INDEX", url: "/", number: "100" },
 	{ label: "ARTICLES", url: "/posts", number: "200" },
-	{ label: "GALLERY", url: "/gallery", number: "300" },
-	{ label: "PAGES", url: "/pages", number: "500" },
+	{ label: "PAGES", url: "/pages", number: "300" },
 ];
 if (about || menu?.items?.some((item) => normalizeUrl(item.url) === "/about")) {
-	navItems.push({ label: "ABOUT", url: "/about", number: "501" });
+	navItems.push({ label: "ABOUT", url: "/about", number: "301" });
 }
+navItems.push({ label: "GALLERY", url: "/gallery", number: "500" });
 const navUrls = new Set(navItems.map((item) => item.url));
 for (const item of menu?.items ?? []) {
 	const url = normalizeUrl(item.url);
@@ -86,9 +86,9 @@ const pageCtx = createPublicPageContext({
 const pageNumbers: Record<string, string> = {
 	"/": "100",
 	"/posts": "200",
-	"/gallery": "300",
-	"/pages": "500",
-	"/about": "501",
+	"/pages": "300",
+	"/about": "301",
+	"/gallery": "500",
 };
 const pageNumber = pageNumbers[currentPath] ?? null;
 const sectionName = currentPath === "/posts" ? "ARCHIVE / ARTICLES" : currentPath === "/pages" ? "DIRECTORY / PAGES" : currentPath === "/gallery" ? "GALLERY" : "READING ROOM";
